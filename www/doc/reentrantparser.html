@@ -1,0 +1,585 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Writing a Reentrant Parser with Flex and Bison -- Edsko de Vries</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Writing a Reentrant Parser with Flex and Bison <br> <span style="font-size: 10pt; font-weight: normal;">(By Edsko de Vries, August 2006)</span></h1>
+
+			<p> This article explains how to create a reentrant parser with
+			Flex and Bison, and how to include more than one parser in the same
+			application. It is <i>not</i> suitable as an introduction to either
+			Flex or Bison; we assume the reader is familiar with both tools, as
+			well as with C and C++. </p> 
+			
+			<p> The problem we will set ourselves is to write a processor for
+			the language <b>ABCD</b>. <b>ABCD</b> is a small toy language
+			designed specifically for this tutorial. It is made up of two
+			sub-languages, <b>AB</b> and <b>CD</b>; here is a simple example in
+			language <b>AB</b>: </p>
+
+<pre>
+abbab
+</pre>
+
+			<p> Each &ldquo;program&rdquo; in <b>ABCD</b> evaluates to an
+			integer. The first occurrence of an <code>a</code> has value 1, the
+			second occurrence has value 2, etc., and similarly for
+			<code>b</code>s.  Thus; the example above has value 9. In addition,
+			you can &ldquo;escape&rdquo; to language <b>CD</b> using square
+			brackets <code>[...]</code>: </p>
+
+<pre>
+a[cdd]bb[c]a
+</pre>
+
+			<p> The value of a program in language <code>CD</code> is
+			calculated analogously to the value of a program in language
+			<code>AB</code>: the first <code>c</code> has value 1, the second
+			<code>c</code> has value 2, etc., and similarly for <code>d</code>.
+			Moreover, values are always calculated with respect to the
+			enclosing square brackets (so, the value of the second example is
+			11).  </p>
+			
+			<p> Finally, in language <b>CD</b>, you can escape back to language
+			<b>AB</b>, so you can nest either language in the other, creating
+			arbitrarily complex nested strings. For example, </p>
+
+<pre>
+a[cd[a[d]]d]b[c[[cd]]]
+</pre>
+
+			<p> also has value 11. The point of the exercise is that languages
+			<b>AB</b> and <b>CD</b> will each get their own parser, so we will
+			need to combine two parsers into one application. The parsers will
+			need global state (in addition to the parser's internal
+			bookkeeping) to be able to calculate the value of each character.
+			Moreover, since it is possible to have an <b>AB</b> string inside
+			another <b>AB</b> string (by escaping twice), we may have to
+			instantiate a new <b>AB</b> parser while the &ldquo;old&rdquo; one
+			is still active.  Therefore it is important that the parsers are
+			reentrant. </p>
+
+			<p> The code for the application we will develop in this tutorial
+			can be found in <a
+			href="reentrantparser/reentrantparser.tar.gz">reentrantparser.tar.gz</a>.
+			</p>
+
+			<h2>High Level Overview</h2>
+
+			<p> Before we start looking at the details, we will give a high
+			level overview of the solution first. There is more than one way to
+			solve this problem; the method I will present here is the one I
+			believe is the least messy, but that is of course a matter of
+			opinion; one alternative (using a C++ lexer) is discussed briefly
+			<a href="#alternative">at the end</a> of this tutorial. </p> 
+
+			<p> Unfortunately, although the solutions offered by Flex and Bison
+			are very similar, they are slightly different in the details, so it
+			will be important to remember which tool we are talking about. </p> 
+
+			<p> When Flex generates a reentrant scanner, the function
+			<code>yylex</code> will get an additional argument
+			<code>scanner</code>. This argument is a pointer to a data
+			structure that represents the state of the scanner. Before we start
+			parsing, we must initialise this state, and then pass the state in
+			to <code>yylex</code> every time it is invoked. The scanner state
+			has a data field, called <code>yyextra</code>, of a user-specified
+			type, that can be used for additional state. We will use
+			<code>yyextra</code> to determine the semantic value of each
+			character in the input (according to the rules explained in the
+			introduction). </p>
+
+			<p> The Bison generated parser <code>yyparse</code> also gets an
+			additional argument, but this argument represents the user-defined
+			state only. The Bison internal global state is stored in local
+			variables inside <code>yyparse</code>, and is completely invisible
+			to the user. </p>
+		
+			<p> We will create a class <code>LanAB_Context</code> (for
+			&ldquo;language <b>AB</b> context&rdquo;) to hold the global
+			(user-defined) state. We will pass in an object of type
+			<code>LanAB_Context</code> to <code>yyparse</code>. Since
+			<code>yyparse</code> needs to call <code>yylex</code>, we will find
+			it useful to store a reference to the <code>scanner</code> object
+			inside <code>LanAB_Context</code>. However, since we only have
+			access to the <code>scanner</code> object from within
+			<code>yylex</code>, we will use <code>yyextra</code> (mentioned
+			above) inside the <code>scanner</code> object to point back to the
+			<code>LanAB_Context</code> object. Graphically: </p>
+
+			<center>
+			<img alt="graphical representation of context" src="reentrantparser/context.png">
+			</center>
+
+			<h2> The Parser Context </h2>
+
+			The parser context will be represented by the following class:
+
+<pre>
+<b>#ifndef</b> LANAB_CONTEXT
+<b>#define</b> LANAB_CONTEXT
+
+<b>#include</b> &lt;iostream&gt;
+<b>using namespace</b> std;
+
+<b>class</b> LanAB_Context
+{
+<b>public</b>:
+   <b>void</b>* scanner;   <i>// the scanner state</i>
+   <b>int</b> result;      <i>// result of the program</i>
+   <b>int</b> a;           <i>// value of the next a</i>
+   <b>int</b> b;           <i>// value of the next b</i>
+   istream* is;     <i>// input stream</i>
+   <b>int</b> esc_depth;   <i>// escaping depth</i>
+
+<b>public</b>:
+   LanAB_Context(istream* is = &amp;cin)
+   {
+      init_scanner();
+      this-&gt;is = is;
+      a = 1;
+      b = 1;
+   }
+
+   <b>virtual</b> ~LanAB_Context()
+   {
+      destroy_scanner();
+   }
+
+<i>// Defined in LanAB.l</i>
+<b>protected</b>:
+   <b>void</b> init_scanner();   
+   <b>void</b> destroy_scanner();
+};
+
+<b>int</b> LanAB_parse(LanAB_Context*);
+
+<b>#endif</b> <i>// LANAB_CONTEXT</i>
+</pre>
+
+			<p>The first section of the class lists the variables that make up
+			the user state of the parser. Most of the variables will be
+			self-explanatory, with the exception perhaps of <code>is</code> and
+			<code>esc_depth</code>, which we will explain when we discuss the
+			lexical analyser.</p>
+
+			<p>The constructor of <code>LanAB_Context</code> initialises some
+			of the parser state, and calls <code>init_scanner</code>. The
+			bodies for <code>init_scanner</code> and
+			<code>destroy_scanner</code> will be provided in the Flex file, and
+			will call <code>yylex_init</code> and <code>yylex_destroy</code> to
+			initialise and free the scanner state, respectively.</p>
+
+			<h2>The Lexer</h2>
+
+			<p> We will explain the code for the lexer bit by bit. First of
+			all, we need to tell Flex to create a reentrant parser: </p>
+
+<pre>
+<b>%option</b> reentrant
+</pre>
+
+			<p> Since we will need two lexers in our application, they cannot
+			both be called <code>yylex</code>. Hence, we set the prefix to
+			&ldquo;LanAB_&rdquo; so that the scanner will be called
+			<code>LanAB_lex</code>: </p>
+
+<pre>
+<b>%option</b> prefix="LanAB_"
+</pre>
+
+			<p> The next two options tell Flex that we are interfacing with a
+			Bison generated parser; <code>bison-bridge</code> adds an argument
+			<code>yylval</code> to <code>yylex</code>, and
+			<code>bison-locations</code> adds an argument code
+			<code>yylloc</code> for location tracking. </p>
+
+<pre>
+<b>%option</b> bison-bridge
+<b>%option</b> bison-locations
+</pre>
+
+			<p> We cannot use the standard <code>yywrap</code> provided by
+			<code>libfl</code> because we have changed the <code>yy</code>
+			prefix, but since we don't need <code>yywrap</code> at all, we
+			simply disable it. </p>
+
+<pre>
+<b>%option</b> noyywrap
+</pre>
+
+			<p> We will use Flex's built-in support for line numbers: </p> 
+
+<pre>
+<b>%option</b> yylineno
+</pre>
+
+			<p> Next we need a bit of C code. First, we need to include the
+			header file that defines the parser context, and the header file
+			generated by Bison (for the token identifiers). </p>
+
+<pre>
+%{
+   <b>#include</b> "LanAB_Context.h"
+   <b>#include</b> "LanAB.tab.h"
+</pre>
+
+			<p> As mentioned in the overview, the scanner state will include a
+			field called <code>yyextra</code> that can be used for user-defined
+			state. The type of this field is specified by
+			<code>YY_EXTRA_TYPE</code>: </p>
+
+<pre>
+   <b>#define</b> YY_EXTRA_TYPE LanAB_Context*
+</pre>
+
+			<p> To set line numbers, we set <code>yyloc-&gt;first_line</code>
+			to <code>yylineno</code> each time a token is recognised: </p>
+
+<pre>
+   <b>#define</b> YY_USER_ACTION yylloc-&gt;first_line = yylineno;
+</pre>
+
+			<p> Finally, because we need to parse strings as well as files, we
+			redefine <code>YY_INPUT</code> and give it a C++ flavour. It will
+			use the <code>istream</code> from the parser context to read the
+			next character. The parser context defaults <code>is</code> to
+			<code>cin</code>, but we will set it to an
+			<code>istringstream</code> later on to parse a nested program. </p>	
+
+<pre>
+   <b>#define</b> YY_INPUT(buf,result,max_size)   \
+   {                                       \
+      char c;                              \
+      (*yyextra-&gt;is) &gt;&gt; c;                 \
+      <b>if</b>(yyextra-&gt;is-&gt;eof())               \
+         result = YY_NULL;                 \
+      <b>else</b> {                               \
+         buf[0] = c;                       \
+         result = 1;                       \
+      }                                    \
+   }
+%}
+</pre>
+
+			<p> We define an exclusive scanner state <code>ESC</code> to deal
+			with escaping: </p>
+
+<pre>
+%x ESC
+</pre>
+
+			<p> We can now define the parser proper. When we see an
+			&ldquo;a&rdquo; we use the parser state to determine its semantic
+			value (see the discussion of the parser, below, for a description
+			of <code>yylval</code>), and return token <code>A</code> to the
+			parser (and similarly for &ldquo;b&rdquo;). When we see an open
+			square bracket, we set the &rdquo;escape depth&rdquo; to 1 and set
+			the scanner state to <code>ESC</code>. </p>
+
+<pre>
+%%
+
+"a"         yylval-&gt;integer = yyextra-&gt;a++; <b>return</b> A; 
+"b"         yylval-&gt;integer = yyextra-&gt;b++; <b>return</b> B;
+"["         yyextra-&gt;esc_depth = 1; BEGIN(ESC);
+.           <b>return</b> ERR;
+\n          <i>/* ignore */</i>
+</pre>
+
+			<p>In <code>ESC</code>, we increase the escape depth for every open
+			square bracket we see, and decrease it for every close bracket.
+			When the depth reaches 0, we return an <code>ESCAPE</code> token to
+			the parser with the appropriate semantic value, and reset the
+			scanner state. </p>
+
+<pre>
+&lt;ESC&gt;"]"   %{
+              yyextra-&gt;esc_depth--;
+              <b>if</b>(yyextra-&gt;esc_depth == 0)
+              {
+                 yylval-&gt;cptr = strndup(yytext, yyleng-1); 
+                 BEGIN(INITIAL); 
+                 <b>return</b> ESCAPE;
+              }
+              <b>else</b>
+              {
+                 yymore();
+              }
+           %}
+&lt;ESC&gt;"["   yymore(); yyextra-&gt;esc_depth++;;
+&lt;ESC&gt;.     yymore();
+</pre>
+
+			<p> In the scanner epilogue we provide the bodies for
+			<code>init_scanner</code> and <code>destroy_scanner</code>. Note
+			the call to <code>yyset_extra</code> to initialise the
+			<code>yyextra</code> field. </p>
+
+<pre>
+%%
+
+<b>void</b> LanAB_Context::init_scanner()
+{
+   yylex_init(&amp;scanner);
+   yyset_extra(this, scanner);
+}
+
+<b>void</b> LanAB_Context::destroy_scanner()
+{
+   yylex_destroy(scanner);
+}
+</pre>
+
+			<h2> The Parser </h2>
+
+			<p> The start of the definition of the parser is nearly identical
+			to the start of the lexical analyser. We tell Bison that we need a
+			reentrant parser, and that the prefix should be changed from
+			<code>yy</code> to <code>LanCD_</code>: </p>
+
+<pre>
+<b>%pure-parser</b>
+<b>%name-prefix</b>="LanAB_"
+</pre>
+
+			<p> Next we need to set a few configuration options to enable
+			location tracking, the generation of a header file, and verbose
+			error messages: </p>
+
+<pre>
+<b>%locations</b>
+<b>%defines</b>
+<b>%error-verbose</b>
+</pre>
+
+			<p> We tell Bison that <code>yyparse</code> should take an extra
+			parameter <code>context</code>, and that <code>yylex</code>
+			(<code>LanAB_lex</code>) takes an additional argument
+			<code>scanner</code> (see below for an explanation of how Bison
+			knows which value to use for <code>scanner</code>). </p>
+
+<pre>
+<b>%parse-param</b> { LanAB_Context* context }
+<b>%lex-param</b> { <b>void</b>* scanner  }
+</pre>
+
+			<p> We use Bison's <code>%union</code> construct to define a
+			semantic value type for integers and character pointers (strings).
+			The terminal symbols <code>A</code> and <code>B</code>, as well as
+			the rule <code>lanab</code> all have type <code>integer</code>;
+			only the <code>ESCAPE</code> token has type <code>cptr</code>
+			(string): </p>
+
+<pre>
+<b>%union</b>
+{
+   <b>int</b> integer;
+   <b>char</b>* cptr;
+}
+
+<b>%token</b> &lt;integer&gt; A
+<b>%token</b> &lt;integer&gt; B
+<b>%token</b> &lt;cptr&gt; ESCAPE 
+<b>%token</b> ERR
+
+<b>%type</b> &lt;integer&gt; lanab
+</pre>
+
+			<p> As in the lexer, we need a bit of C code in the prologue. Note
+			that this C code is defined <i>after</i> the definition of the
+			<code>%union</code>, which means that this code will go into the
+			C++ file (<tt>LanAB.tab.c</tt>) instead of the header file
+			(<tt>LanAB.tab.h</tt>). We need a few system headers, and we need
+			to include the parser context headers <code>LanAB_Context</code>
+			and <code>LanCD_Context</code> (we have not shown
+			<code>LanCD_Context</code> above but it is virtually the same as
+			<code>LanAB_Context</code>; the full code can be found in the <a
+			href="reentrantparser/reentrantparser.tar.gz">source archive</a>):
+			</p>
+
+<pre>
+%{
+   <b>#include</b> &lt;iostream&gt;
+   <b>#include</b> &lt;sstream&gt;
+   <b>#include</b> "LanAB_Context.h"
+   <b>#include</b> "LanCD_Context.h"
+
+   <b>using namespace</b> std;
+</pre>
+
+			<p> We need to declare the type of the lexer: </p>
+
+<pre>
+   <b>int</b> LanAB_lex(YYSTYPE* lvalp, YYLTYPE* llocp, <b>void</b>* scanner);
+</pre>
+
+			<p> and define the error handler. Note that the error handler is
+			passed the parser context and location information; these
+			parameters are automatically added to the error handler when
+			creating a pure (reentrant) parser. </p>
+
+<pre>
+   <b>void</b> LanAB_error(YYLTYPE* locp, LanAB_Context* context, <b>const char</b>* err)
+   {
+      cout &lt;&lt; locp-&gt;first_line &lt;&lt; ":" &lt;&lt; err &lt;&lt; endl;
+   }
+</pre>
+
+			<p> We told Bison above that <code>yylex</code> takes an additional
+			argument <code>scanner</code> of type <code>void*</code>, but we
+			haven't yet told it which value to use for <code>scanner</code>.
+			The way this works is that Bison will use the name of the argument
+			also as the value of the argument; in other words, it will call
+			<code>yylex</code> as <code>yylex(..., scanner)</code>. Therefore,
+			we provide a macro <code>scanner</code> that extracts the scanner
+			state from the parser state: </p> 
+
+<pre>
+   <b>#define</b> scanner context-&gt;scanner
+%}
+</pre>
+
+			<p> The definition of the grammar itself is reasonably
+			straightforward. We will show the entire grammar and then explain
+			some details: </p>
+
+<pre>
+%%
+
+start:
+     lanab
+        { context-&gt;result = $1; }
+   ;
+
+lanab:
+     A lanab
+        { $$ = $1 + $2; }
+   | B lanab
+      { $$ = $1 + $2; }
+   | ESCAPE lanab
+      {
+         {
+            istringstream* is = <b>new</b> istringstream($1);
+            LanCD_Context context(is);
+            LanCD_parse(&amp;context);
+            $$ = context.result + $2;
+         }
+      }
+   | /* empty */
+      { $$ = 0; }
+   ;
+</pre>
+
+			<p> The only rule, really, that needs an explanation in this
+			definition is the rule that deals with escapes. When we get an
+			escape string, we set up a brand new parser context for the
+			<i>other</i> parser (for the <b>CD</b> language). We create a new
+			<code>istringstream</code> based on the escape string to act as the
+			input for the new parser (this is why we redefined
+			<code>YY_INPUT</code> in the lexer) and invoke the parser. The
+			result of the parser (as extracted from its context) is used as the
+			semantic value of the escape string. </p>
+
+			<h2> The Main Application </h2>
+
+			<p> The main application is very straightforward: </p>
+
+<pre>
+<b>#include</b> &lt;iostream&gt;
+<b>#include</b> "LanAB_Context.h"
+
+<b>using namespace</b> std;
+
+<b>int</b> main()
+{
+   LanAB_Context context;
+
+   <b>if</b>(!LanAB_parse(&amp;context))
+   {
+      cout &lt;&lt; context.result &lt;&lt; endl;
+   }
+}
+</pre>
+
+			<p> Of course, for the application to be complete, we also need to
+			define the parser context <code>LanCD_Context.h</code>, lexer
+			<code>LanCD.l</code> and scanner <code>LanCD.y</code> for the
+			<b>CD</b> language, but they are very similar to their
+			<code>AB</code> counterparts. You can find the full application in
+			<a
+			href="reentrantparser/reentrantparser.tar.gz">reentrantparser.tar.gz</a>.
+			</p>
+
+			<h2> <a name="alternative">Alternative: A C++ Lexer</a> </h2>	
+
+			<p> As an alternative to <code>%option reentrant</code>, one can
+			also specify <code>%option c++</code> in the Flex definition.  This
+			encapsulates the generated scanner in a class called
+			<code>yyFlexLexer</code>, which makes it automatically reentrant.
+			However, in my opinion this leads to inelegant code. </p> 
+			
+			<p> <code>yylex</code> can no longer be redefined to take
+			additional parameters. To give the scanner access to a
+			(user-defined) state, you need to make <code>yyFlexLexer</code>
+			inherit from the parser context. To be more precise, you need to
+			define a new class <code>Lexer</code> that inherits from both
+			<code>yyFlexLexer</code> and <code>LanAB_Context</code>, then use
+			the <code>%option yyclass</code> to tell Flex to add the
+			<code>yylex</code> method to your <code>Lexer</code> class instead
+			of to <code>yyFlexLexer</code>. You must then also add some glue
+			code to add <code>yylval</code> and <code>yylloc</code> to the
+			parser context in such a way that Bison knows how to access them.
+			Not only is this rather messy, it also means that the scanner has a
+			completely different method of accessing the context (through
+			inheritance) than the parser (through additional parameters), which
+			does little to improve the readability of the code. </p> 
+
+			<p> Things really get messy when you need more than one (C++)
+			scanner in the one application. It can be done, but it isn't very
+			easy and certainly not very obvious. Moreover, even the authors of
+			Flex aren't very confident; the regenerated C++ code contains the
+			following comment (Flex version 2.5.33): </p> 
+
+<pre>
+/* The c++ scanner is a mess. The FlexLexer.h header file relies on the
+ * following macro. This is required in order to pass the
+ * c++-multiple-scanners test in the regression suite. We get reports
+ * that it breaks inheritance.  We will address this in a future release
+ * of flex, or omit the C++ scanner altogether.
+ */
+#define yyFlexLexer yyFlexLexer
+</pre>
+
+			<p> which doesn't inspire much confidence. All in all, I
+			believe the solution as presented in this tutorial is
+			better, but if you think otherwise, please let <a
+			href="mailto:edsko@edsko.net">me</a> know. </p>
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

@@ -1,0 +1,717 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Memory Layout for Multiple and Virtual Inheritance -- Edsko de Vries</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Memory Layout for Multiple and Virtual Inheritance <br> <span style="font-size: 10pt; font-weight: normal;">(By Edsko de Vries, January 2006)</span></h1>
+
+			<div class="warningbox">
+				<b>Warning</b>. This article is rather technical and assumes a
+				good knowledge of C++ and some assembly language.
+			</div>
+
+			<p> In this article we explain the object layout implemented by
+			<tt>gcc</tt> for multiple and virtual inheritance. Although in an
+			ideal world C++ programmers should not need to know these details of
+			the compiler internals, unfortunately the way multiple (and especially
+			virtual) inheritance is implemented has various non-obvious
+			consequences for writing C++ code (in particular, for <a
+			href="#Downcasting">downcasting pointers</a>, using <a
+			href="#DoublePointers">pointers to pointers</a>, and the invocation
+			order of <a href="#VirtualConstructors">constructors for virtual
+			bases</a>). If you understand how multiple inheritance is implemented,
+			you will be able anticipate these consequences and deal with them in
+			your code.  Also, it is useful to understand the cost of using virtual
+			inheritance if you care about efficiency. Finally, it is interesting
+			:-) </p>
+
+			<h2>Multiple Inheritance</h2>
+
+			<p> First we consider the relatively simple case of (non-virtual)
+			multiple inheritance. Consider the following C++ class hierarchy. </p>
+	
+<pre>
+<b>class</b> Top
+{
+<b>public</b>:
+   <b>int</b> a;
+};
+
+<b>class</b> Left : <b>public</b> Top
+{
+<b>public</b>:
+   <b>int</b> b;
+};
+
+<b>class</b> Right : <b>public</b> Top
+{
+<b>public</b>:
+   <b>int</b> c;
+};
+
+<b>class</b> Bottom : <b>public</b> Left, <b>public</b> Right
+{
+<b>public</b>:
+   <b>int</b> d;
+};
+</pre>
+
+			<p> Using a UML diagram, we can represent this hierarchy as </p>
+
+			<center><img alt="class hierarchy" src="virtualinheritance/nonvirtual.png"></center>
+
+			<p> Note that <code>Top</code> is inherited
+			from <i>twice</i> (this is known as <i>repeated inheritance</i> in
+			Eiffel). This means that an object <code>bottom</code> of type
+			<code>Bottom</code> will have <i>two</i> attributes called
+			<code>a</code> (accessed as <code>bottom.Left::a</code> and
+			<code>bottom.Right::a</code>). </p> 
+
+			<p> How are <code>Left</code>, <code>Right</code> and
+			<code>Bottom</code> laid out in memory? We show the simplest case
+			first. <code>Left</code> and <code>Right</code> have the following
+			structure: </p>
+
+			<table align="center" cellspacing="10">
+			<tr><td>
+				<table width="100" class="layout">
+				<tr><th>Left</th></tr>
+				<tr><td>Top::a</td></tr>
+				<tr><td>Left::b</td></tr>
+				</table>
+			</td><td>
+				<table width="100" class="layout">
+				<tr><th>Right</th></tr>
+				<tr><td>Top::a</td></tr>
+				<tr><td>Right::c</td></tr>
+				</table>
+			</td></tr>
+			</table>
+
+			<p> Note that the first attribute is the attribute inherited from
+			<code>Top</code>. This means that after the following two assignments
+			</p>
+
+<pre>
+Left* left = <b>new</b> Left();
+Top* top = left;
+</pre>
+
+			<p> <code>left</code> and <code>top</code> can point to the exact same
+			address, and we can treat the <code>Left</code> object as if it were a
+			<code>Top</code> object (and obviously a similar thing happens for
+			<code>Right</code>).  What about <code>Bottom</code>? <tt>gcc</tt>
+			suggests </p>
+
+			<center>
+			<table class="layout" width="100">
+			<tr><th>Bottom</th></tr>
+			<tr><td>Left::Top::a</td></tr>
+			<tr><td>Left::b</td></tr>
+			<tr><td>Right::Top::a</td></tr>
+			<tr><td>Right::c</td></tr>
+			<tr><td>Bottom::d</td></tr>
+			</table>
+			</center>
+
+			<p> Now what happens when we upcast a <code>Bottom</code> pointer?
+			</p>
+
+<pre>
+Bottom* bottom = <b>new</b> Bottom();
+Left* left = bottom;
+</pre>
+		
+			<p> This works out nicely. Because of the memory layout, we can treat
+			an object of type <code>Bottom</code> as if it were an object of type
+			<code>Left</code>, because the memory layout of both classes coincide.
+			However, what happens when we upcast to <code>Right</code>? </p>
+
+<pre>
+Right* right = bottom;
+</pre>
+
+			<p> For this to work, we have to adjust the pointer value to make it point to the corresponding section of the <code>Bottom</code> layout: 
+			
+			<center>
+			<table style="border-collapse: collapse;">
+			<tr><td></td><th style="background: #efdba7; text-align: left; border: 1px black solid;" width="100">Bottom</th></tr>
+			<tr><td></td><td style="border: 1px black solid;">Left::Top::a</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Left::b</td></tr>
+			<tr><td><code>right</code> <img alt="points to" src="../img/rightarrow.gif">&nbsp;</td><td style="border: 1px black solid;">Right::Top::a</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Right::c</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Bottom::d</td></tr>
+			</table>
+			</center>
+
+			<p> After this adjustment, we can access <code>bottom</code> through
+			the <code>right</code> pointer as a normal <code>Right</code> object;
+			however, <code>bottom</code> and <code>right</code> now
+			point to <i>different</i> memory locations. For completeness' sake,
+			consider what would happen when we do </p> 
+
+<pre>
+Top* top = bottom;
+</pre>
+
+			<p> Right, nothing at all. This statement is ambiguous: the compiler
+			will complain	</p>
+
+<pre>
+error: `Top' is an ambiguous base of `Bottom'
+</pre>
+
+			<p> The two possibilities can be disambiguated using </p>
+
+<pre>
+Top* topL = (Left*) bottom;
+Top* topR = (Right*) bottom;
+</pre>
+
+			<p> After these two assignments, <code>topL</code> and
+			<code>left</code> will point to the same address, as will
+			<code>topR</code> and <code>right</code>. </p>
+
+			<h2>Virtual Inheritance</h2>
+
+			<p> To avoid the repeated inheritance of <code>Top</code>, we must inherit <i>virtually</i> from <code>Top</code>: </p>
+
+<pre>
+<b>class</b> Top
+{
+<b>public</b>:
+   <b>int</b> a;
+};
+
+<b>class</b> Left : <b class="box">virtual</b> <b>public</b> Top
+{
+<b>public</b>:
+   <b>int</b> b;
+};
+
+<b>class</b> Right : <b class="box">virtual</b> <b>public</b> Top
+{
+<b>public</b>:
+   <b>int</b> c;
+};
+
+<b>class</b> Bottom : <b>public</b> Left, <b>public</b> Right
+{
+<b>public</b>:
+   <b>int</b> d;
+};
+</pre>
+			
+			<p> This yields the following hierarchy (which is perhaps what you expected in the first place) </p>
+
+			<center><img alt="class hierarchy" src="virtualinheritance/virtual.png"></center>
+
+			<p> while this may seem more obvious and simpler from a programmer's
+			point of view, from the compiler's point of view, this is vastly more
+			complicated. Consider the layout of <code>Bottom</code> again. One
+			(non) possibility is </p>
+			
+			<center>
+			<table class="layout" width="100">
+			<tr><th>Bottom</th></tr>
+			<tr><td>Left::Top::a</td></tr>
+			<tr><td>Left::b</td></tr>
+			<tr><td>Right::c</td></tr>
+			<tr><td>Bottom::d</td></tr>
+			</table>
+			</center>
+
+			<p> The advantage of this layout is that the first part of the layout collides with the layout of <code>Left</code>, and we can thus access a <code>Bottom</code> easily through a <code>Left</code> pointer. However, what are we going to do with </p>
+
+<pre>
+Right* right = bottom;
+</pre>
+
+			<p> Which address do we assign to <code>right</code>? After this
+			assignment, we should be able to use <code>right</code> as if it were
+			pointing to a regular <code>Right</code> object. However, this is
+			impossible! The memory layout of <code>Right</code> itself is
+			completely different, and we can thus no longer access a
+			&ldquo;real&rdquo; <code>Right</code> object in the same way as an
+			upcasted <code>Bottom</code> object. Moreover, no other (simple)
+			layout for <code>Bottom</code> will work. </p>
+
+			<p> The solution is non-trivial. We will show the solution first and
+			then explain it. </p>
+
+			<center> <img alt="layout of Bottom" src="virtualinheritance/vtable.png"> </center>
+
+			<p> You should note two things in this diagram. First, the order of
+			the fields is completely different (in fact, it is approximately the
+			reverse). Second, there are these new <code>vptr</code> pointers.
+			These attributes are automatically inserted by the compiler when
+			necessary (when using virtual inheritance, or when using virtual
+			functions). The compiler also inserts code into the constructor to
+			initialise these pointers. </p>
+
+			<p> The <code>vptr</code>s (virtual pointers) index a &ldquo;virtual
+			table&rdquo;. There is a <code>vptr</code> for every virtual base of
+			the class. To see how the virtual table (<b>vtable</b>) is used,
+			consider the following C++ code. </p> 
+
+<pre>
+Bottom* bottom = <b>new</b> Bottom();
+Left* left = bottom;
+<b>int</b> p = left-&gt;a;
+</pre>
+
+			<p> The second assignment makes <code>left</code> point to the <i>same
+			address</i> as <code>bottom</code> (i.e., it points to the
+			&ldquo;top&rdquo; of the <code>Bottom</code> object). We consider the
+			compilation of the last assignment (slightly simplified): </p>
+
+<pre>
+<b>movl</b>  left, %eax        <i># %eax = left</i>
+<b>movl</b>  (%eax), %eax      <i># %eax = left.vptr.Left</i>
+<b>movl</b>  (%eax), %eax      <i># %eax = virtual base offset</i> 
+<b>addl</b>  left, %eax        <i># %eax = left + virtual base offset</i>
+<b>movl</b>  (%eax), %eax      <i># %eax = left.a</i>
+<b>movl</b>  %eax, p           <i># p = left.a</i>
+</pre>	
+
+			<p> In words, we use <code>left</code> to index the virtual table and
+			obtain the &ldquo;virtual base offset&rdquo; (<b>vbase</b>). This
+			offset is then added to <code>left</code>, which is then used to index
+			the <code>Top</code> section of the <code>Bottom</code> object. From
+			the diagram, you can see that the virtual base offset for
+			<code>Left</code> is 20; if you assume that all the fields in
+			<code>Bottom</code> are 4 bytes, you will see that adding 20 bytes to
+			<code>left</code> will indeed point to the <code>a</code> field. </p>
+
+			<p> With this setup, we can access the <code>Right</code> part the
+			same way. After </p>
+
+<pre>
+Bottom* bottom = <b>new</b> Bottom();
+Right* right = bottom;
+<b>int</b> p = right-&gt;a;
+</pre>
+
+			<p> <code>right</code> will point to the appropriate part of the
+			<code>Bottom</code> object: </p> 	
+			
+			<center>
+			<table style="border-collapse: collapse;">
+			<tr><td></td><th style="background: #efdba7; text-align: left; border: 1px black solid;" width="100">Bottom</th></tr>
+			<tr><td></td><td style="border: 1px black solid;">vptr.Left</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Left::b</td></tr>
+			<tr><td><code>right</code> <img alt="points to" src="../img/rightarrow.gif">&nbsp;</td><td style="border: 1px black solid;">vptr.Right</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Right::c</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Bottom::d</td></tr>
+			<tr><td></td><td style="border: 1px black solid;">Top::a</td></tr>
+			</table>
+			</center>
+
+			<p> The assignment to <code>p</code> can now be compiled in the
+			<i>exact same way</i> as we did previously for <code>Left</code>. The
+			only difference is that the <code>vptr</code> we access now points to
+			a different part of the virtual table: the virtual base offset we
+			obtain is 12, which is correct (verify!). We can summarise this visually: </p>
+
+			<center> <img alt="virtual table" src="virtualinheritance/vtable3.png"> </center>
+
+			<p> Of course, the point of the exercise was to be able to access real
+			<code>Right</code> objects the same way as upcasted
+			<code>Bottom</code> objects. So, we have to introduce
+			<code>vptr</code>s in the layout of <code>Right</code> (and
+			<code>Left</code>) too: </p>
+			
+			<center> <img alt="layout of Left and Right" src="virtualinheritance/vtable2.png"> </center>
+
+			<p> Now we can access a <code>Bottom</code> object through a
+			<code>Right</code> pointer without further difficulty. However, this
+			has come at rather large expense: we needed to introduce virtual
+			tables, classes needed to be extended with one or more virtual
+			pointers, and a simple attribute lookup in an object now needs two
+			indirections through the virtual table (although compiler
+			optimizations can reduce that cost somewhat). </p>
+
+			<h2><a name="Downcasting">Downcasting</a></h2>
+
+			<p> As we have seen, casting a pointer of type
+			<code>DerivedClass</code> to a pointer of type <code>SuperClass</code>
+			(in other words, upcasting) may involve adding an offset to the
+			pointer. One might be tempted to think that downcasting (going the
+			other way) can then simply be implemented by subtracting the same
+			offset. And indeed, this is the case for non-virtual inheritance.
+			However, virtual inheritance (unsurprisingly!) introduces another
+			complication. </p>
+
+			<p> Suppose we extend our inheritance hierarchy with the following
+			class. </p>
+
+<pre>
+<b>class</b> AnotherBottom : <b>public</b> Left, <b>public</b> Right
+{
+<b>public</b>:
+   <b>int</b> e;
+   <b>int</b> f;
+};
+</pre>
+
+			<p> The hierarchy now looks like </p>
+			
+			<center><img alt="class hierarchy" src="virtualinheritance/virtual2.png"></center>
+
+			<p> Now consider the following code. </p>
+
+<pre>
+Bottom* bottom1 = <b>new</b> Bottom();
+AnotherBottom* bottom2 = <b>new</b> AnotherBottom();
+Top* top1 = bottom1;
+Top* top2 = bottom2;
+Left* left = <b>static_cast&lt;</b>Left*<b>&gt;</b>(top1);
+</pre>
+
+			<p> The following diagram shows the layout of <code>Bottom</code> and
+			<code>AnotherBottom</code>, and shows where <code>top</code> is
+			pointing after the last assignment. </p>
+
+			<table align="center" cellspacing="10">
+			<tr><td valign="top">
+				<table style="border-collapse: collapse;">
+				<tr><td></td><th style="background: #efdba7; text-align: left; border: 1px black solid;" width="150">Bottom</th></tr>
+				<tr><td></td><td style="border: 1px black solid;">vptr.Left</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">Left::b</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">vptr.Right</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">Right::c</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">Bottom::d</td></tr>
+				<tr><td><code>top1</code> <img alt="points to" src="../img/rightarrow.gif">&nbsp;</td><td style="border: 1px black solid;">Top::a</td></tr>
+				</table>
+			</td><td>
+				<table style="border-collapse: collapse;">
+				<tr><td></td><th style="background: #efdba7; text-align: left; border: 1px black solid;" width="150">AnotherBottom</th></tr>
+				<tr><td></td><td style="border: 1px black solid;">vptr.Left</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">Left::b</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">vptr.Right</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">Right::c</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">AnotherBottom::e</td></tr>
+				<tr><td></td><td style="border: 1px black solid;">AnotherBottom::f</td></tr>
+				<tr><td><code>top2</code> <img alt="points to" src="../img/rightarrow.gif">&nbsp;</td><td style="border: 1px black solid;">Top::a</td></tr>
+				</table>
+			</td></tr>
+			</table>
+
+			<p> Now consider how to implement the <i>static</i> cast from
+			<code>top1</code> to <code>left</code>, while taking into account that
+			we do not know whether <code>top1</code> is pointing to an object of
+			type <code>Bottom</code> or an object of type
+			<code>AnotherBottom</code>. It can't be done! The necessary offset
+			depends on the runtime type of <code>top1</code> (20 for
+			<code>Bottom</code> and 24 for <code>AnotherBottom</code>). The
+			compiler will complain: </p>
+
+<pre>
+error: cannot convert from base `Top' to derived type `Left' 
+via virtual base `Top'
+</pre>
+
+			<p> Since we need runtime information, we need to use a dynamic cast
+			instead: </p>
+
+<pre>
+Left* left = <b>dynamic_cast&lt;</b>Left*<b>&gt;</b>(top1);
+</pre>
+
+			<p> However, the compiler is still unhappy: </p>
+
+<pre>
+error: cannot dynamic_cast `top' (of type `class Top*') to type 
+   `class Left*' (source type is not polymorphic)
+</pre>
+
+			<p> The problem is that a dynamic cast (as well as use of
+			<code>typeid</code>) needs runtime type information about the object
+			pointed to by <code>top1</code>. However, if you look at the diagram,
+			you will see that all we have at the location pointed to by
+			<code>top1</code> is an integer (<code>a</code>). The compiler did not
+			include a <code>vptr.Top</code> because it did not think that was
+			necessary. To force the compiler to include this <code>vptr</code>, we
+			can add a virtual destructor to <code>Top</code>: </p>
+
+<pre>
+<b>class</b> Top
+{
+<b>public</b>:
+   <span class="box"><b>virtual</b> ~Top() {}</span> 
+   <b>int</b> a;
+};
+</pre>
+
+			<p> This change necessitates a <code>vptr</code> for
+			<code>Top</code>. The new layout for <code>Bottom</code> is </p> 
+
+			<center><img alt="layout of Bottom" src="virtualinheritance/vtable4.png"></center>
+
+			<p>(Of course, the other classes get a similar new
+			<code>vptr.Top</code> attribute). The compiler now inserts a library
+			call for the dynamic cast:</p>
+
+<pre>
+left = __dynamic_cast(top1, typeinfo_for_Top, typeinfo_for_Left, -1);
+</pre>
+
+			<p>This function <code>__dynamic_cast</code> is defined in
+			<tt>libstdc++</tt> (the corresponding header file is
+			<tt>cxxabi.h</tt>); armed with the type information for
+			<code>Top</code>, <code>Left</code> and <code>Bottom</code> (through
+			<code>vptr.Top</code>), the cast can be executed. (The -1 parameter
+			indicates that the relationship between <code>Left</code> and
+			<code>Top</code> is presently unknown). For details, refer to the
+			implementation in <a
+			href="http://www.codesourcery.com/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
+			</p>
+
+			<h2>Concluding Remarks</h2>
+	
+			Finally, we tie a couple of loose ends.
+	
+			<h3><a name="DoublePointers">(In)variance of Double Pointers</a></h3>
+	
+			<p> This is were it gets slightly confusing, although it is rather
+			obvious when you give it some thought. We consider an example. Assume
+			the class hierarchy presented in the last section (<a
+			href="#Downcasting">Downcasting</a>). We have seen previously what the
+			effect is of </p>
+
+<pre>
+Bottom* b = <b>new</b> Bottom();
+Right* r = b;
+</pre>	
+
+			<p> (the value of <code>b</code> gets adjusted by 8 bytes before it is
+			assigned to <code>r</code>, so that it points to the
+			<code>Right</code> section of the <code>Bottom</code> object). Thus,
+			we can legally assign a <code>Bottom*</code> to a <code>Right*</code>.
+			What about <code>Bottom**</code> and <code>Right**</code>? </p>
+
+<pre>
+Bottom** bb = &amp;b;
+Right** rr = bb;
+</pre>
+
+			<p> Should the compiler accept this? A quick test will show that the
+			compiler will complain: </p>
+
+<pre>
+error: invalid conversion from `Bottom**' to `Right**'
+</pre>
+
+			<p> Why? Suppose the compiler would accept the assignment of
+			<code>bb</code> to <code>rr</code>. We can visualise the result as:
+			</p>		
+
+			<center><img alt="double pointers" src="virtualinheritance/doublepointers.png"></center>
+
+			<p> So, <code>bb</code> and <code>rr</code> both point to
+			<code>b</code>, and <code>b</code> and <code>r</code> point to the
+			appropriate sections of the <code>Bottom</code> object. Now consider
+			what happens when we assign to <code>*rr</code> (note that the type of
+			<code>*rr</code> is <code>Right*</code>, so this assignment is
+			valid): </p>
+
+<pre>
+*rr = b;	
+</pre>
+
+			<p> This is essentially the same assignment as the assignment to
+			<code>r</code> above. Thus, the compiler will implement it the same
+			way! In particular, it will adjust the value of <code>b</code> by 8
+			bytes before it assigns it to <code>*rr</code>. But <code>*rr</code>
+			pointed to <code>b</code>! If we visualise the result again: </p>
+
+			<center><img alt="bb points to the wrong part of Bottom" src="virtualinheritance/doublepointers2.png"></center>
+
+			<p> This is correct as long as we access the <code>Bottom</code> object through <code>*rr</code>, but as soon as we access it through <code>b</code> itself, all memory references will be off by 8 bytes &mdash; obviously a very undesirable situation. </p>
+
+			<p> So, in summary, even if <code>*a</code> and <code>*b</code> are
+			related by some subtyping relation, <code>**a</code> and
+			<code>**b</code> are <i>not</i>. </p>
+
+			<h3><a name="VirtualConstructors">Constructors of Virtual Bases</a></h3>
+
+			<p> The compiler must guarantee that all virtual pointers of an
+			object are properly initialised. In particular, it guarantees that the
+			constructor for all virtual bases of a class get invoked, and get
+			invoked only once. If you don't explicitly call the constructors of
+			your virtual superclasses (independent of how far up the tree they
+			are), the compiler will automatically insert a call to their default
+			constructors.  </p> 
+
+			<p> This can lead to some unexpected results. Consider the same class
+			hierarchy again we have been considering so far, extended with
+			constructors: </p>
+
+<pre>
+<b>class</b> Top
+{
+<b>public</b>:
+   Top() { a = -1; } 
+   Top(<b>int</b> _a) { a = _a; } 
+   <b>int</b> a;
+};
+
+<b>class</b> Left : <b>public</b> Top
+{
+<b>public</b>:
+   Left() { b = -2; }
+   Left(<b>int</b> _a, <b>int</b> _b) : Top(_a) { b = _b; }
+   <b>int</b> b;
+};
+
+<b>class</b> Right : <b>public</b> Top
+{
+<b>public</b>:
+   Right() { c = -3; }
+   Right(<b>int</b> _a, <b>int</b> _c) : Top(_a) { c = _c; }
+   <b>int</b> c;
+};
+
+<b>class</b> Bottom : <b>public</b> Left, <b>public</b> Right
+{
+<b>public</b>:
+   Bottom() { d = -4; } 
+   Bottom(<b>int</b> _a, <b>int</b> _b, <b>int</b> _c, <b>int</b> _d) : Left(_a, _b), Right(_a, _c) 
+	{ 
+      d = _d; 
+	}
+   <b>int</b> d;
+};
+</pre>
+
+			<p> (We consider the non-virtual case first.) What would you expect
+			this to output: </p>
+
+<pre>
+Bottom bottom(1,2,3,4);
+printf("%d %d %d %d %d\n", bottom.Left::a, bottom.Right::a, 
+   bottom.b, bottom.c, bottom.d);
+</pre>
+		
+			<p> You would probably expect (and get) </p>
+
+<pre>
+1 1 2 3 4
+</pre>
+
+			<p> However, now consider the virtual case (where we inherit virtually
+			from <code>Top</code>). If we make that single change, and run the
+			program again, we instead get </p>
+
+<pre>
+-1 -1 2 3 4
+</pre>
+		
+			<p> Why? If you trace the execution of the constructors, you will find
+			</p>
+
+<pre>
+Top::Top()
+Left::Left(1,2)
+Right::Right(1,3)
+Bottom::Bottom(1,2,3,4)
+</pre>
+
+			<p> As explained above, the compiler has inserted a call to the
+			default constructor in <code>Bottom</code>, before the execution of
+			the other constructors. Then when <code>Left</code> tries to call its
+			superconstructor (<code>Top</code>), we find that <code>Top</code> has
+			already been initialised and the constructor does not get invoked.
+			</p>
+
+			<p> To avoid this situation, you should explicitly call the
+			constructor of your virtual base(s): </p>
+
+<pre>
+Bottom(int _a, int _b, int _c, int _d): Top(_a), Left(_a,_b), Right(_a,_c) 
+{ 
+   d = _d; 
+}
+</pre>
+
+			<h3>Pointer Equivalence</h3>
+
+			<p> Once again assuming the same (virtual) class hierarchy, would you
+			expect this to print &ldquo;Equal&rdquo;? </p>
+
+<pre>
+Bottom* b = <b>new</b> Bottom(); 
+Right* r = b;
+      
+<b>if</b>(r == b)
+   printf("Equal!\n");
+</pre>
+
+			<p> Bear in mind that the two addresses are not <i>actually</i> equal
+			(<code>r</code> is off by 8 bytes). However, that should be completely
+			transparent to the user; so, the compiler actually subtracts the 8
+			bytes from <code>r</code> before comparing it to <code>b</code>;
+			thus, the two addresses are considered equal. </p>	
+
+			<h3>Casting to <code>void*</code></h3>
+
+			<p> Finally, we consider what happens we can cast an object to
+			<code>void*</code>. The compiler must guarantee that a pointer cast to
+			<code>void*</code> points to the &ldquo;top&rdquo; of the object.
+			Using the vtable, this is actually very easy to implement. You may
+			have been wondering what the <i>offset to top</i> field is. It is the
+			offset from the <code>vptr</code> to the top of the object. So, a cast
+			to <code>void*</code> can be implemented using a single lookup in the
+			vtable. Make sure to use a dynamic cast, however, thus: </p> 
+			
+<pre>
+<b>dynamic_cast</b>&lt;<b>void</b>*&gt;(b);
+</pre>
+
+			<h2>References</h2>
+
+			<p>[1] <a href="http://www.codesourcery.com">CodeSourcery</a>, in
+			particular the <a href="http://www.codesourcery.com/cxx-abi">C++ ABI
+			Summary</a>, the <a
+			href="http://www.codesourcery.com/cxx-abi/abi.html">Itanium C++
+			ABI</a> (despite the name, this document is referenced in a
+			platform-independent context; in particular, the <a
+			href="http://www.codesourcery.com/cxx-abi/abi.html#vtable">structure
+			of the vtables</a> is detailed here). The <tt>libstdc++</tt>
+			implementation of dynamic casts, as well RTTI and name
+			unmangling/demangling, is defined in <a
+			href="http://www.codesourcery.com/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
+
+			<p>[2] The <a href="http://gcc.gnu.org/libstdc++/">libstdc++</a> website, in particular the section on the <a href="http://gcc.gnu.org/onlinedocs/libstdc++/abi.html">C++ Standard Library API</a>.</p> 
+
+			<p>[3] <a href="http://msdn.microsoft.com/archive/default.asp?url=/archive/en-us/dnarvc/html/jangrayhood.asp">C++: Under the Hood</a> by Jan Gray.</p>
+
+			<p>[4] Chapter 9, &ldquo;Multiple Inheritance&rdquo; of <i>Thinking in C++ (volume 2)</i> by <a href="http://www.bruceeckel.com">Bruce Eckel</a>. The author has made this book available for <a href="http://mindview.net/Books/DownloadSites">download</a>. 
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

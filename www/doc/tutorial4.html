@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Tutorial 4: Using State</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Tutorial 4: Using State</h1>
+
+			<p> This tutorial explains an advanced feature of pattern matching,
+			and shows an important technique in writing tree transforms: the use
+			of state. Suppose we are continuing the refactoring tool that we began
+			in <a href="tutorial2.html">Tutorial 2</a>, and suppose that we have
+			replaced all calls to database specific functions by calls to the
+			generic DBX functions. To finish the refactoring, we want to rename
+			any function <code>foo</code> in the script to <code>foo_DB</code>, if
+			it makes use of the database &mdash; this clearly sets functions that
+			use the database apart, which may make the structure of the script
+			clearer.  </p>
+		
+			<p> So, we want to write a transform that renames all functions
+			<code>foo</code> to <code>foo_DB</code>, if there is one or more call
+			within that function to any <code>dbx_<i>something</i></code>
+			function. Here is a simple example: </p>
+
+<pre>
+&lt;?<b>php</b>
+   <b>function</b> first()
+   {
+      <b>global</b> $link;
+      $error = dbx_error($link);
+   }
+
+   <b>function</b> second()
+   {
+      <b>echo</b> "Do something else";
+   }
+?&gt;
+</pre>
+	
+			After the transform, we should get
+	
+<pre>
+&lt;?<b>php</b>
+   <b>function</b> first<span class="box">_DB</span>()
+   {
+      <b>global</b> $link;
+      $error = dbx_error($link);
+   }
+
+   <b>function</b> second()
+   {
+      <b>echo</b> "Do something else";
+   }
+?&gt;
+</pre>
+			
+			<h2>The Implementation</h2>
+
+			<p> Since we have to modify method (function) names, the nodes we are
+			interested in are the nodes of type <code>AST_method</code>. However,
+			how do we know when to modify a particular method? Should we search
+			the method body for function calls to <code>dbx_<i>xxx</i></code>? As
+			we saw in <a href="tutorial1.html">Tutorial 1</a>, manual searching
+			through the tree is cumbersome; there must be a better solution. </p> 
+
+			<p> The solution is in fact very easy. At the start of each method,
+			we set a variable <code>uses_dbx</code> to <code>false</code>. When
+			we process the method, we set <code>uses_dbx</code> to
+			<code>true</code> when we find a function call to a DBX function.
+			Then at the end of the method, we check <code>uses_dbx</code>; if
+			it was set to <code>true</code>, we modify the name of the method.
+			This tactic is implement by the following transform (available as
+			<tt>plugins/tutorials/InsertDB.so</tt> in the <span
+			class="phc">phc</span> distribution). Note the use of
+			<code>pre_method</code> and <code>post_method</code> to initialise
+			and check <code>use_dbx</code>, respectively. (Because we don't
+			need to modify the structure of the tree in this transform, we use
+			the simpler <code>Tree_visitor</code> API instead of the
+			<code>Tree_transform</code> API.) </p>
+
+<pre>
+<b>class</b> InsertDB : <b>public</b> Tree_visitor
+{
+<b>private</b>:
+   <b>int</b> uses_dbx;
+   
+<b>public</b>:
+   <b>void</b> pre_method(AST_method* in)
+   {
+      uses_dbx = <b>false</b>;   
+   }
+
+   <b>void</b> post_method(AST_method* in)
+   {
+      <b>if</b>(uses_dbx)
+         in-&gt;signature-&gt;method_name-&gt;value-&gt;append("_DB");
+   }
+
+   <b>void</b> post_method_invocation(AST_method_invocation* in)
+   {
+      Token_method_name* pattern = <b>new</b> Token_method_name(WILDCARD);
+      
+      <i>// Check for dbx_</i>
+      <b>if</b>(in-&gt;method_name-&gt;match(pattern) &amp;&amp; 
+         pattern-&gt;value-&gt;find("dbx_") == 0)
+      {
+         uses_dbx = <b>true</b>;
+      }
+   }
+};
+</pre>
+
+			<p> In <a href="tutorial2.html">Tutorial 2</a>, we simply wanted to
+			check for a particular function name, and we used <code>match</code>
+			to do this: </p>
+     
+<pre>
+<b>if</b>(in-&gt;match(<b>new</b> Token_method_name("mysql_connect")))
+</pre>
+
+			<p>Here, we need to check for method names that start with
+			<code>dbx_</code>. We use the STL method <code>find</code> to do
+			this, but we cannot call this directly on
+			<code>in-&gt;method_name</code> because
+			<code>in-&gt;method_name</code> has type
+			<code>AST_method_name</code> (could either be a
+			<code>Token_method_name</code> or a <code>AST_reflection</code>
+			node).  However, calling <code>match</code> on a pattern has the
+			side effect of making the pattern equal to the tree we are matching
+			on by replacing all wildcards with their corresponding value in the
+			tree. So, after calling <code>match</code> in the transform, we can
+			call <code>find</code> on the pattern (which has the right type)
+			instead of directly on <code>in-&gt;method_name</code>.
+			(<code>match</code> has this side effect only if the match
+			succeeds.)</p>
+
+			<p> (Of course, this transform is not complete; renaming methods is
+			not enough, we must also rename the corresponding method
+			invocations. This is left as an exercise for the reader.) </p> 
+
+			<h2> What's Next? </h2>
+
+			<p> <a href="tutorial5.html">Tutorial 5</a> explains how to change the
+			order in which the children of a node are visited, avoid visiting some
+			children, or how to execute a piece of code in between visiting two
+			children.</p>	
+			
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

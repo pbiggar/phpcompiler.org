@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Tutorial 5: Modifying the Traversal Order</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Tutorial 5: Modifying the Traversal Order</h1>
+
+			<p> As explained in the previous tutorials (in particular, <a
+			href="tutorial1.html">Tutorial 1</a>), when a
+			<code>Tree_visitor</code> traverses a tree, it first calls
+			<code>pre_xxx</code> for a node of type <i>xxx</i>, it then visits all
+			the children of the node, and finally it calls <code>post_xxx</code>
+			on the node.  For many transforms, this is sufficient &mdash; but not
+			for all.  Consider the following transform. Suppose we want to add
+			comments  to the <i>true</i> and <i>false</i> branches of an
+			<i>if</i>-statement, so that the following example </p>
+
+<pre>
+&lt;?<b>php</b>
+   <b>if</b>($expr)
+   {
+      <b>echo</b> "Do something";
+   }
+   <b>else</b>
+   {
+      <b>echo</b> "Do something else";
+   }
+?&gt;
+</pre>
+	
+			<p> is translated to </p>
+		
+<pre>
+&lt;?<b>php</b>
+   <b>if</b>($expr)
+   {
+      <i>/* TODO: Insert comment */</i>
+      <b>echo</b> "Do something";
+   }
+   <b>else</b>
+   {
+      <i>/* TODO: Insert comment */</i>
+      <b>echo</b> "Do something else";
+   }
+?&gt;
+</pre>
+
+			<p> This appears to be a simple transform. One way to do implement it
+			would be to introduce a flag <code>comment</code> that is set to
+			<code>true</code> when we encounter an <code>AST_if</code> (i.e., in
+			<code>pre_if</code>). Then in <code>post_statement</code> we could
+			check for this flag, and if it is set, we could add the required
+			comment to the statement, and reset the flag to <code>false</code>.
+			</p>
+			
+			<p> However, this will only add a comment to the first statement in
+			the <i>true</i> branch (try!). To add a comment to the first statement
+			in the <i>false</i> branch too, we should set the flag to
+			<code>true</code> in between visiting the children of the <i>true</i>
+			branch and visiting the children of the <i>false</i> branch. To be
+			able to do this, we need to modify <code>children_if</code>, as
+			explained in the next section. </p>
+
+			<h2> The Solution </h2>
+
+			<p> For every AST node type <i>xxx</i>, the TreeTransform API defines
+			a method called <code>children_xxx</code>. This method is responsible
+			for visiting all the children of the node. The default implementation
+			for <code>AST_if</code> is: </p>
+
+<pre>
+<b>void</b> children_if(AST_if* in)
+{  
+   in-&gt;expr-&gt;visit(this);
+   in-&gt;iftrue-&gt;visit(this);
+   in-&gt;iffalse-&gt;visit(this);
+}
+</pre>
+
+			<p> (you can find this definition in
+			<tt>generated/Tree_visitor.cpp</tt>). If you want to change the order
+			in which the children of a node are visited, entirely avoid visiting
+			some children, or simply execute a piece of code in between two
+			children, this is the method you will need to modify. </p>
+
+			<p> Here is the transform that does what we need (available as
+			<tt>plugins/tutorials/Comment_ifs.so</tt>): </p>
+
+<pre>
+<b>class</b> Comment_ifs : <b>public</b> Tree_visitor
+{
+<b>private</b>:
+   <b>bool</b> comment;
+
+<b>public</b>:
+   Comment_ifs()
+   {
+      comment = <b>false</b>; 
+   }
+
+   <b>void</b> children_if(AST_if* in)
+   {
+      in-&gt;expr-&gt;visit(this);
+      comment = <b>true</b>;
+      in-&gt;iftrue-&gt;visit(this);
+      comment = <b>true</b>;
+      in-&gt;iffalse-&gt;visit(this);
+      comment = <b>false</b>;
+   }
+
+   <b>void</b> post_statement(AST_statement* in)
+   {
+      <b>if</b>(comment &amp;&amp; in-&gt;get_comments()-&gt;empty())
+         in-&gt;get_comments()-&gt;push_back(new String("/* TODO: Insert comment */"));
+
+      comment = <b>false</b>;
+   }
+};
+</pre>
+
+			<h2> What's Next? </h2>
+
+			<p> <a href="tutorial6.html">Tutorial 6</a> explains how to deal
+			with transforms that can replace a single node by multiple new
+			nodes, and shows how to call the <span class="phc">phc</span>
+			parser and unparser from your plugins. </p>
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

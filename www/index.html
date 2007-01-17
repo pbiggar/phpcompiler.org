@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- the open source PHP compiler</title>
+		<link rel="stylesheet" type="text/css" href="phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="index.html">Home</a> | 
+				<a class="nav" href="src/index.html">Downloads</a> | 
+				<a class="nav" href="doc/index.html">Documentation</a> |
+				<a class="nav" href="plugins/index.html">Plugins</a> |
+				<a class="nav" href="spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td>
+			<table width="100%" cellpadding="5"><tr>
+			<td width="67%" style="border-right: solid #8a7640 1px;" valign="top">
+				<h1>What is <span class="phc">phc</span>?</h1>
+
+				<p> <span class="phc">phc</span> is a framework for static analysis
+				of PHP scripts, PHP source to source transformations, and
+				ultimately compiling PHP scripts down to native machine code. </p>
+			
+				<p> The current release <b>does not yet compile PHP</b> and is
+				therefore not yet useful for end-users. It is however useful for
+				writing tools that operate on PHP scripts, such as refactoring
+				tools, aspect weavers, or obfuscators (see <a
+				href="spinoffs/index.html">Spinoffs</a> for some other
+				suggestions). See <a href="doc/whatsinstore.html">What's in
+				Store</a> to get an idea of what is planned for next releases of
+				<span class="phc">phc</span>. </p>
+
+				<p> <span class="phc">phc</span> provides the programmer with a <a
+				href="doc/grammar.html">well-defined</a> representation of PHP
+				scripts (an abstract syntax tree or AST), an <a
+				href="doc/index.html">API</a> to define analyses and
+				transformations over this representation, and an unparser to output
+				the AST back to PHP syntax. See the <a
+				href="doc/demo.html">Demo</a> for a quick idea of what <span
+				class="phc">phc</span> can do for you, or the <a
+				href="doc/index.html">Documentation</A> to get started with <span
+				class="phc">phc</span>.</p>
+
+				<h2>New: XML support</h2>
+
+				<p> If you are not comfortable with C++, or for some other reason
+				would prefer not to work directly with the <span
+				class="phc">phc</span> framework, <span class="phc">phc</span>
+				might still be useful to you, because it can output the AST to <a
+				href="doc/runningphc.html#xml">XML format</a>. Moreover, <span
+				class="phc">phc</span> is also able to read this XML back in, and
+				can write it back to PHP syntax. This means that you can write
+				applications that operate on PHP scripts in XML syntax, using our
+				abstract syntax for PHP, and use <span class="phc">phc</span> to
+				convert from PHP syntax to XML syntax and back. </p> 
+
+			</td>
+			<td width="33%" valign="top">
+				<h1>Contact Us</h1>
+	
+				<p> We are more than happy to answer any questions about <span
+				class="phc">phc</span>. So please do not hesitate to join the <span
+				class="phc">phc</span> mailing list, where we will try our best to
+				answer any queries as quickly as we can. You can join below. </p>
+			
+				<form method="post" action="https://altoure.vm.bytemark.co.uk/cgi-bin/mailman/subscribe/phc-general">
+				<table bgcolor="#efdba7" cellpadding="3" style="border: #8a7640 solid 1px;" align="center">
+				<tr>
+				<td>Email</td><td><input type="text" name="email"></td>
+				</tr><tr>
+				<td colspan="2" align="right"><input type="submit" name="email-button" value="Subscribe"></td>
+				</tr>
+				</table>
+				</form>
+			
+				<h1>News</h1>
+			
+				<p> <i><a href="news.html#2006sept09">8 September 2006</a></i>. We are delighted to announce the
+				first spin-off based on <span class="phc">phc</span>. Written
+				by Daniel Barreiro, it embeds HTML/XML into PHP. See <a
+				href="spinoffs">spinoffs</a> for details. In further news, we
+				have released version <b>0.1.7</b> as no major programs were
+				reported in 0.1.7rc2, and we have added a new article on <a
+				href="doc/reentrantparser.html">writing a reentrant parser with
+				Bison and Flex</a>. </p>
+
+				<p> <i><a href="news.html#2006july21">21 July 2006</a></i>. Fixed a
+				few (minor) user-reported bugs in <b>0.1.7rc2</b>. </p>
+
+				<p> <i><a href="news.html#2006july13">13 July 2006</a></i>.
+				Released version <b>0.1.7rc1</b>. We now support extending <span
+				class="phc">phc</span> through <b>plugins</b>: it is no longer
+				necessary to re-compile <span class="phc">phc</span> to add
+				functionality to it! This also should make binary packages for
+				<span class="phc">phc</span> much more useful. See the <a
+				href="src/ChangeLog">ChangeLog</a> for more details. </p>  
+
+				<p> <i><a href="news.html#2006july07">7 July 2006</a></i>. Bugfix
+				(<b>0.1.6rc2</b>). Scripts with open ended PHP (no closing tag) had
+				an extraneous echo at the end; also, use of identifiers as array
+				indices inside strings caused the identifier to be duplicated in
+				the string to follow the variable access. </p>
+
+				<p> <i><a href="news.html#2006july04">4 July 2006</a></i>. After a
+				long period of no releases, we are happy to announce version
+				<b>0.1.6rc1</b>. New in this release are an improved tree
+				transformation API, support for pattern matching on AST nodes, an
+				XML unparser, and various other features and bugfixes. As always,
+				see <a href="src/ChangeLog">ChangeLog</a> for details. </p> 
+
+				<p> See the <a href="news.html">news archive</a> for older news.
+				</p>
+				
+			</td>
+			</tr></table>
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

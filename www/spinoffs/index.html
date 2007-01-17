@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Spinoff Projects</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+		<table width="100%" cellpadding="5"><tr>
+		<td width="67%" style="border-right: solid #8a7640 1px;" valign="top">
+			<h1>Spinoff Projects</h1>
+
+<h2>PHT</h2>
+
+<p> We are delighted to announce the first actual spin-off from <span
+class="phc">phc</span>. Written by Daniel Barreiro, <tt>PHT</tt> embeds
+HTML/XML into PHP to ensure that the XML or HTML output by PHP scripts is
+well-formed and (although this has not yet been implemented) valid. Details and
+source can be found at <a
+href="http://www.satyam.com.ar/pht/">http://www.satyam.com.ar/pht/</a>. </p>
+
+<h2>Plumhead</h2>
+
+Plumhead is written by Bernhard Schmalhofer and attempts to implement PHP on
+Parrot by taking the XML output from <span class="phc">phc</span> and
+transforming it (using XSLT) to the Parrot internal representation. See <a
+href="http://rakudo.org/parrot/index.cgi?plumhead">http://rakudo.org/parrot/index.cgi?plumhead</a>
+for more information.
+
+			<h1>Suggestions</h1>
+
+<p> Below is a list of other projects that we'd love to see built.  All of
+these tools are very difficult to implement starting from scratch.  With <span
+class="phc">phc</span> as a base from which to work, the burden of developing
+any of these tools should be greatly reduced.  </p>
+
+<ul>
+<li><a href="#refactoring">Refactoring Tool</a></li>
+<li><a href="#style">Style Checker</a></li>
+<li><a href="#aspect">Aspect Weaver</a></li>
+<li><a href="#obfuscate">Script Obfuscator</a></li>
+<li><a href="#optimize">Script Optimizer</a></li>
+<li><a href="#pretty">Pretty Printers</a></li>
+<li><a href="#translate">Language Translation</a></li>
+<li><a href="#semantic">Semantic Checker</a></li>
+</ul>
+
+<h2><a name="refactoring">Refactoring Tool</a></h2>
+
+<p> According to <a
+href="http://www.refactoring.com">www.refactoring.com</a>, refactoring
+is <i>a disciplined technique for restructuring an existing body of
+code, altering its internal structure without changing its external
+behavior</i>.  A simple example of refactoring is renaming a variable
+name or a function name.  More complex refactoring may involve finding
+repeated blocks of code inside a script and moving them to a function.
+</p>
+
+<p> While simple refactorings can be coded directly in <span
+class="phc">phc</span> (see for example the <a
+href="../doc/demo.html">Demo</a>), a dedicated refactoring tool based on
+<span class="phc">phc</span> would make this process much easier for the
+end-user. It could even provide a graphical user interface offering
+common refactoring tasks, so that the programmer does not need to
+write any code at all to refactor their code. </p>
+
+<p> We are planning to include type inference in <span class="phc">phc</span>
+at some point, which should increase the usefulness of <span
+class="phc">phc</span> for refactoring greatly (see <a
+href="../doc/whatsinstore.html">What's in Store?</a>).  </p>
+
+<p> See also <a href="../doc/tutorial2.html">Tutorial 2</a> for an
+example of a useful refactoring for PHP. </p>
+
+<h2><a name="style">Style Checker</a></h2>
+
+<p> Software companies often have a series of &ldquo;programming style
+guidelines&rdquo; that dictate how classes, methods and variables should be
+named, if and where there are compulsory comments, etc. This is useful to make
+sure that code written by different programmers looks the same. This is also
+useful in open source projects, with lots of programmers working on the same
+codebase. </p>
+
+<p> A style checker is a tool that knows about these guidelines and is able to
+check whether a particular program adheres to them. It is possible to write a
+style checker for a particular set of guidelines directly. However, a dedicated
+tool for style checking should be able to read in a set of guidelines (either in
+text form or using a GUI) and verify programs according to them. </p>
+
+<p> Note that <span class="phc">phc</span> records line number and comments in
+the generated tree, so that they can be used in the verification process too.
+</p>
+
+<h2><a name="aspect">Aspect Weaver</a></h2>
+
+<p> Aspect oriented programming is a relatively new programming paradigm. The
+standard example to explain what AOP does for you is the following. Suppose you
+have a script with a series of functions. Say you want to start and end every
+function with a call to some logging function: </p>
+
+<pre>
+&lt;?<b>php</b>
+   <b>function</b> some_function
+   {
+      log("some_function: begin");
+
+      <i>/* do whatever the function should do */</i>
+
+      log("some_function: end");
+   }
+?&gt;
+</pre>
+
+<p> And say you want to do that in each and every function, for example for
+debugging purposes. It's a lot of work to do that manually for every function.
+And when you no longer need it, it is a lot of work to remove it again. This is
+what's known as a <i>cross-cutting concern</i>: something you need to implement
+(in this example, logging), that &ldquo;cross-cuts&ldquo; (affects) a lot of
+code. With AOP, you can write this concern as a single &ldquo;aspect&rdquo;.
+You then run your program through an &ldquo;aspect weaver&rdquo;, which will
+insert the necessary code at the start and end of each function, thus saving
+you a lot of work. </p>
+
+<p> For more information, check out AspectJ, an aspect weaver for Java
+(<a href="http://www.eclipse.org/aspectj/">www.eclipse.org/aspectj</a>), or
+read for example <i>AspectJ in Action</i> by Ramnivas Laddad. You can do
+some very slick things with aspect oriented programming :-) </p>
+
+<p> <span class="phc">phc</span> would be a good foundation upon which to build
+an aspect weaver for PHP. </p>
+
+<h2><a name="obfuscate">Script Obfuscator</a></h2>
+
+Most PHP scripts are distributed in source form. But what if you don't want
+people to modify your code? Or what if you want to make your code as
+difficult to understand as possible, so that it becomes harder to analyse it
+for possible attacks? A script obfuscator takes a PHP script and outputs
+another PHP script that does the same thing, but is completely unreadable.
+There are a few obfuscators available for PHP, but a script obfuscator based on
+<span class="phc">phc</span> can make use of a lot of structural information
+about the script, opening new avenues for great obfuscation :-) 
+
+<h2><a name="optimize">Script Optimizer</a></h2>
+
+Similar to a script obfuscator, a script optimizer takes a PHP script and
+outputs another PHP script that does the same thing, but runs much faster. As a
+simple example, consider
+
+<pre>
+&lt;?<b>php</b>
+   <b>echo</b> "Text $with variables.";
+?&gt;
+</pre>
+
+This could be changed to
+
+<pre>
+&lt;?<b>php</b>
+   <b>echo</b> 'Text ', $with, ' variables.';
+?&gt;
+</pre>
+
+which should run faster. Many other optimizations are possible.
+
+<h2><a name="pretty">Pretty Printers</a></h2>
+
+<p> <span class="phc">phc</span> includes a standard pretty printer that
+outputs the AST (<span class="phc">phc</span>'s internal representation of a
+script) into normal PHP, but it is rather limited. For example, it cannot be
+configured. Moreover, it can probably be improved in a number of places. For
+example, it really should deal better with brackets in expressions (at the
+moment, it simply copies the brackets from the user).  </p>
+
+<p> A pretty printer would take an AST and output it in some way. For example,
+it could output the AST to normal PHP code, but in a different layout style
+than the standard unparser does. But you could also think of other unparsers.
+For example, it might output to HTML or Latex, so that you can include PHP
+examples in HTML websites or in Latex documents. </p>
+
+<p> Since version 0.1.6., the <span class="phc">phc</span> unparser is defined
+as a tree visitor, so it is possible to define new unparsers by inheriting from
+the <code>PHP_unparser</code> class, and redefining only those features that
+need to be improved. </p>
+
+<h2><a name="translate">Language Translation</a></h2>
+
+Tools that translate PHP into other languages (for example, a PHP to ASP
+translator). Note that this is a much more difficult task than the other
+projects mentioned, and such a tool would benefit greatly from future additions
+to <span class="phc">phc</span> itself (which is, after all, a compiler).
+
+<h2><a name="semantic">Semantic Checker</a></h2>
+
+Like a style checker, a semantic checker does not actually modify a PHP script,
+but checks it instead for &ldquo;bugs&rdquo;. For example, it could issue a
+warning in the following code
+
+<pre>
+&lt;?<b>php</b>
+   $a = "some text " + $b; 
+?&gt;
+</pre>
+
+(The <code>+</code> should probably have been a <code>.</code>). This
+project will also benefit from future releases of <span
+class="phc">phc</span> (see <a href="../doc/whatsinstore.html">What's in
+Store?</a>).
+
+		</td>
+		<td width="33%" valign="top">
+			<h1>Make Yourself Known!</h1>
+
+			<p> If you are interested in starting on any of these (or other)
+			projects, and you need help, do not hesitate to send questions to the
+			<a href="../contact.html">mailing list</a>. </p>
+			
+			<p> Also, if your tool has reached some level of usability, and you
+			would like to see it listed on this website, please let us know. In
+			fact, if your tool is real good, we could even integrate it into <span
+			class="phc">phc</span> itself. </p>
+			
+			<p> Either way, if you are building software based on <span
+			class="phc">phc</span>, we would really love to know about it &mdash; so
+			please keep us posted! </p>
+			
+			<h1>Donations</h1>
+
+			Finally, if you do write a tool based on <span class="phc">phc</span>,
+			and you're making buckets of money, we'd appreciate a donation :-)
+			Contact us at <a
+			href="mailto:donations@phpcompiler.org">donations@phpcompiler.org</a>.
+
+		</td></tr>
+		</table>
+
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

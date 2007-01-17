@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Documentation</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Documentation</h1>
+			
+			<div class="warningbox">
+				Since version 0.1.7 the recommended way of extending phc is
+				through plugins. <a href="gettingstarted.html" style="color:
+				inherit; text-decoration: underline;">Getting Started</a>
+				explains how to compile plugins for phc.
+			</div>
+		
+			<p> Because <span class="phc">phc</span> does not generate machine
+			code, it not yet useful to end users. However, it can be used as a
+			framework for writing applications that process PHP code. <span
+			class="phc">phc</span> parses PHP code into an internal
+			representation known as an <b>abstract syntax tree</b> or
+			<b>AST</b>.  Applications can process PHP code by analysing and
+			modifying this abstract representation in one of two ways: </p>  
+
+			<ul>
+
+			<li> <span class="phc">phc</span> supports <b>plugins</b>. Plugins
+			are modules that can be loaded into <span class="phc">phc</span>,
+			which get access to the AST. <span class="phc">phc</span> provides
+			sophisticated support for writing operations over the AST through
+			the <b>Tree Transformation API</b>. 
+
+			<lI> Alternatively, you can export the AST to <b>XML</b>. You can
+			then process the XML in any way you like, and then use <span
+			class="phc">phc</span> to convert the XML back to PHP syntax.
+
+			</ul>
+			
+			<p> The <b>Usage</b> documentation below explains how to explain
+			and run <span class="phc">phc</span>, and how to convert from PHP
+			to XML and back. <b>Writing Plugins</b> explains how to write
+			plugins for <span class="phc">phc</span>, and provides numerous
+			examples. You will find the <b>Reference Documentation</b> very
+			useful when writing serious applications using <span
+			class="phc">phc</span>. Finally, <b>Miscellaneous</b> lists a few
+			other articles you may find interesting. </p> 
+			
+			<p> Note that you can download the documentation for this and for
+			older versions from the <a href="../src/archive/">archive</a>.
+			Moreover, although we have tried to document <span
+			class="phc">phc</span> as well as we can, if anything is still
+			unclear, please let us know by sending an email to the <a
+			href="../contact.html">mailing list</a>.  </p>
+
+			<table width="100%" cellspacing="10">
+			<tr><td width="50%" valign="top">
+				<table class="layout">
+				<tr><th>Usage</th></tr>
+				<tr><td>
+				<h3>Installation Instructions</h3>
+				
+				The <a href="install.html">Installation Instructions</a> explain
+				how to compile <span class="phc">phc</span> after you have <a
+				href="../src/index.html">downloaded</a> it.
+				
+				<h3>Running <span class="phc">phc</span></h3>
+
+				 <a href="runningphc.html">Running phc</a> explains how to run
+				 <span class="phc">phc</span> and how to use <span
+				 class="phc">phc</span> to convert from PHP to XML and back.  
+
+				<h3>Porting and packaging <span class="phc">phc</span></h3>
+
+				<a href = "portingandpackagingphc.html">Porting and packaging
+				phc</a> discusses issues in how to maintain, port, and package
+				<span class="phc">phc</span>.
+
+				</td></tr>
+				</table>
+			
+				<p></p>
+				
+				<table class="layout">
+				<tr><th>Reference</th></tr>
+				<tr><td>
+
+				<h3>The Grammar</h3>
+				
+				<span class="phc">phc</span> represents PHP scripts internally as
+				an abstract syntax tree. The structure of this tree is dictated by
+				the (abstract) <a href="grammar.html">grammar</a>. The grammar
+				definition is a very important part of <span
+				class="phc">phc</span>.
+	
+				<h3>Representing PHP</h3>
+	
+				<span class="phc">phc</span>'s view on the world (as dictated by
+				the grammar) does not completely agree with the PHP standard view.
+				<a href="representingphp.html">Representing PHP</a> describes how
+				the various PHP constructs get translated into the abstract syntax.
+	
+				<h3>Overview of the AST classes and transformation API</h3>
+
+				This gives an <a href="generatedcode.html">overview</a> of the AST
+				classes, the tree visitor API and the tree transformation API from
+				a programmer's perspective.
+				
+				<h3><span class="phc">maketea</span> Theory</h3>
+
+				<span class="phc">maketea</span> is a tool bundled with <span
+				class="phc">phc</span> which, based on a grammar definition of a
+				language, generates a C++ hierarchy for the corresponding abstract
+				syntax tree, a tree transformation and visitor API, and deep
+				cloning, deep equality and pattern matching on the AST. The <a
+				href="maketeatheory.html">maketea theory</a> explains some of the
+				theory behind <span class="phc">maketea</span>; in particular, the
+				grammar formalism, the mapping from the grammar to the AST classes,
+				and the derivation of the tree transformation API. 			
+
+				</td></tr>
+				</table>
+				
+				<p></p>
+
+				<table class="layout">
+				<tr><th>Miscellaneous</th></tr>
+				<tr><td>
+
+				<h3>Memory Layout for Multiple and Virtual Inheritance</h3>
+				
+				Programmers wishing to enhance their knowledge of C++ might
+				find <a href="virtualinheritance.html">Memory Layout for Multiple
+				and Virtual Inheritance</a> an interesting article. It explains the
+				difficulties C++ compilers face when deciding the (runtime) layout
+				for objects in the presence of multiple inheritance, and the
+				consequences this has for programmers. 
+
+				<h3>Writing a Reentrant Parser with Flex and Bison</h3>
+
+				<a href="reentrantparser.html">Writing a Reentrant Parser with Flex
+				and Bison</a> explains by means of an example how to create a
+				reentrant parser with Flex and Bison, and how to use more than one
+				parser in one application. 
+
+				</td></tr>
+				</table>
+				
+			</td><td width="50%" valign="top">
+				<table class="layout">
+				<tr><th>Writing Plugins</th></tr>
+				<tr><td>
+				<h3>Getting Started</h3>
+	
+				<a href="gettingstarted.html">Getting Started</a> introduces
+				writing plugins for <span class="phc">phc</span>. It then explains
+				how <span class="phc">phc</span> represents PHP scripts internally,
+				and shows how to write a simple plugin that counts the number of
+				classes in a PHP script.
+	
+				<h3>Tutorial 1: Traversing the Tree</h3>
+	
+				<a href="tutorial1.html">Tutorial 1</a> introduces the support that
+				<span class="phc">phc</span> offers for traversing (and
+				transforming) scripts. It shows how to write a program that counts
+				the number of function calls in a script.
+	
+				<h3>Tutorial 2: Modifying Tree Nodes</h3>
+	
+				<a href="tutorial2.html">Tutorial 2</a> shows how you can modify
+				nodes in the tree (without modifying the structure of the tree). It
+				shows how to replace calls to <code>mysql_connect</code> by calls
+				to <code>dbx_connect</code>.
+	
+				<h3>Tutorial 3: Restructuring the Tree</h3>
+	
+				<a href="tutorial3.html">Tutorial 3</a> shows how you can modify
+				the structure of the tree. It works through an example that
+				removes unnecessary string concatenations (for example, <code>$a .
+				""</code> is replaced by just <code>$a</code>).	
+				
+				<h3>Tutorial 4: Using State</h3>
+	
+				<a href="tutorial4.html">Tutorial 4</a> explains an advanced
+				features of pattern matching, and shows an important technique: the
+				use of state in transformations (where one transformation depends
+				on a previous transformation). It shows how to write a program that
+				renames all functions <code>foo</code> in a script to
+				<code>db_foo</code>, if there are calls to a database engine within
+				<code>foo</code>.
+				
+				<h3>Tutorial 5: Modifying the Traversal Order</h3>
+				
+				<a href="tutorial5.html">Tutorial 5</a> explains how to change the
+				order in which the children of a node are visited, avoid visiting
+				some children, or how to execute a piece of code in between
+				visiting two children.
+
+				<h3>Tutorial 6: Returning Lists</h3>
+
+				<a href="tutorial6.html">Tutorial 6</a> shows how to define
+				transformations that replace nodes in the tree by multiple
+				other nodes, and how to delete nodes from the tree. It also
+				shows to call the <span class="phc">phc</span> parser and
+				unparsers from plugins. 
+
+				</td></tr>
+				</table>
+				
+			</td></tr>
+			</table>
+	
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Abstract Grammar</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>The Abstract Grammar</h1>
+
+			This is the full and authoritative definition of the <span
+			class="phc">phc</span> abstract grammar for PHP in <span
+			class="phc">maketea</span> format (this can also be found in
+			<tt>generated_src/phc.tea</tt> in the distribution). For a description
+			of the structure of the grammar, and how it converts to C++ code,
+			refer to the <a href="maketeatheory.html">Grammar Formalism</a>.
+
+			<h2>Overall Structure</h2>
+
+<pre>
+php_script ::= interface_def* class_def+ ;
+
+interface_def ::= INTERFACE_NAME <i>extends</i>:INTERFACE_NAME* member* ;
+
+class_def ::= class_mod CLASS_NAME <i>extends</i>:CLASS_NAME? 
+   <i>implements</i>:INTERFACE_NAME* member* ;
+class_mod ::= "abstract"? "final"? ;
+
+member ::= method | attribute ;
+
+method ::= signature statement*? ;
+signature ::= method_mod <i>is_ref</i>:"&"? METHOD_NAME formal_parameter* ;
+method_mod ::= "public"? "protected"? "private"? 
+   "static"? "abstract"? "final"? ;
+formal_parameter ::= type <i>is_ref</i>:"&"? VARIABLE_NAME expr? ;
+type ::= "array"? CLASS_NAME? ;
+
+attribute ::= attr_mod VARIABLE_NAME expr? ;
+attr_mod ::= "public"? "protected"? "private"? "static"? "const"?  ;
+</pre>
+
+		<h2>Statements</h2>
+
+<pre>
+statement ::=
+     if | while | do | for | foreach 
+   | switch | break | continue | return
+   | static_declaration
+   | unset | declare | try | throw | eval_expr ;
+
+if ::= expr <i>iftrue</i>:statement* <i>iffalse</i>:statement* ;
+while ::= expr statement* ;
+do ::= statement* expr ;
+for ::= <i>init</i>:expr? <i>cond</i>:expr? <i>incr</i>:expr? statement* ;
+foreach ::= expr <i>key</i>:variable? <i>is_ref</i>:"&"? 
+   <i>val</i>:variable statement* ;
+
+switch ::= expr switch_case* ;
+switch_case ::= expr? statement* ;
+break ::= expr? ;
+continue ::= expr? ;
+return ::= expr? ;
+
+static_declaration ::= VARIABLE_NAME expr? ;
+unset ::= variable ;
+
+declare ::= directive+ statement* ;
+directive ::= DIRECTIVE_NAME expr ;
+
+try ::= statement* <i>catches</i>:catch* ;
+catch ::= CLASS_NAME VARIABLE_NAME statement* ;
+throw ::= expr ;
+
+eval_expr ::= expr ;
+</pre>
+		
+		<h2>Expressions</h2>
+
+<pre>
+expr ::=
+     assignment | list_assignment | cast | unary_op | bin_op
+   | conditional_expr | ignore_errors | constant | instanceof
+   | variable | pre_op | post_op | array
+   | method_invocation | new | clone
+   | literal ;
+   
+literal ::= INT | REAL | STRING | BOOL | NULL ;
+   
+assignment ::= variable <i>is_ref</i>:"&"? expr ;
+
+list_assignment ::= list_elements expr ;
+list_elements ::= list_element?* ;
+list_element ::= variable | list_elements ;
+
+cast ::= CAST expr ;
+unary_op ::= OP expr ;
+bin_op ::= <i>left</i>:expr OP <i>right</i>:expr ;
+
+conditional_expr ::= 
+   <i>cond</i>:expr <i>iftrue</i>:expr <i>iffalse</i>:expr ;
+ignore_errors ::= expr ;
+
+constant ::= CLASS_NAME CONSTANT_NAME ;
+
+instanceof ::= expr class_name ;
+
+variable ::= target? variable_name
+   <i>array_indices</i>:expr?* <i>string_index</i>:expr? ;
+variable_name ::= VARIABLE_NAME | reflection ;
+reflection ::= expr ;
+
+target ::= expr | CLASS_NAME ;
+
+pre_op ::= OP variable ;
+post_op ::= variable OP ;
+
+array ::= array_elem* ;
+array_elem ::= <i>key</i>:expr? <i>is_ref</i>:"&"? <i>val</i>:expr ;
+
+method_invocation ::= target method_name actual_parameter* ;
+method_name ::= METHOD_NAME | reflection ;
+
+actual_parameter ::= <i>is_ref</i>:"&"? expr ;
+
+new ::= class_name actual_parameter* ;
+class_name ::= CLASS_NAME | reflection ;
+
+clone ::= expr ;
+</pre>
+
+		<h2>Additional Structure</h2>
+
+<pre>
+node ::= 
+     php_script | class_mod | signature 
+   | method_mod | formal_parameter | type | attr_mod 
+   | static_var | directive | list_element | variable_name | target
+   | array_elem | method_name | actual_parameter | class_name 
+   | commented_node | expr | identifier 
+   | formal_parameter* | directive* | array_elem* | actual_parameter* 
+   | INTERFACE_NAME* | list_element* | expr*
+   ;
+
+commented_node ::= 
+     member | statement | interface_def | class_def | switch_case 
+	| catch interface_def* | class_def* | member* | statement* 
+	| switch_case* | catch*   
+   ;
+
+identifier ::=
+     INTERFACE_NAME | CLASS_NAME | METHOD_NAME | VARIABLE_NAME 
+   | DIRECTIVE_NAME | CAST | OP | CONSTANT_NAME
+   ;  
+</pre>
+
+		<h2><a name="mixin">Mix-in Code</a></h2>
+
+		<p> The code generated based on the grammar listed above can be extended
+		by &ldquo;mix-in&rdquo; code, which adds fields or methods to the class
+		structure generated by <span class="phc">maketea</span>. For a full
+		listing of the mix-in code, see <tt>generated_src/phc.tea</tt> in the
+		<span class="phc">phc</span> distribution. </p>
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

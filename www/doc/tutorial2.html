@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Tutorial 2: Modifying Tree Nodes</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Tutorial 2: Modifying Tree Nodes</h1>
+
+			<p> Now that we have seen in <a href="tutorial1.html">Tutorial 1</a>
+			how to inspect the tree, in this tutorial we will look at modifying
+			the tree. The task we set ourselves is: replace all calls to
+			<code>mysql_connect</code> by calls to <code>dbx_connect</code> (<a
+			href="http://pecl.php.net/package/dbx">dbx</a> is a PECL extension to
+			PHP that allows scripts interface with a database independent of the type
+			of the database; this conversion could be part of a larger refactoring
+			process that makes a script written for MySQL work with other
+			databases.) </p>
+
+			<p> The tutorial we develop in this tutorial is available as
+			<tt>MySQL2DBX.so</tt> in the <span class="phc">phc</span>
+			distribution. To see its effect, run <span class="phc">phc</span>
+			as follows: </p>
+	
+<pre>
+phc --run plugins/tutorials/MySQL2DBX.so --dump-php test.php
+</pre>
+
+			<h2>First Attempt</h2>
+
+			<p>
+			As in the previous tutorial, we are interested in all function calls.
+			However, now we are interested only in function calls to
+			<code>mysql_connect</code>. Let us have a look at the precise
+			definition of a function call according to the <a
+			href="grammar.html">grammar</a>:
+			</p>
+
+<pre>
+method_invocation ::= target method_name <i>params:</i>actual_parameter* ;
+method_name ::= METHOD_NAME | reflection ;
+actual_parameter ::= <i>is_ref:</i>"&"? expr ;
+</pre>
+			
+			<p> (The <code>target</code> of a method invocation is the class or
+			object the function gets invoked on. It is explained in <a
+			href="tutorial3.html">Tutorial 3</a>, and need not worry us here.) For
+			now, we are only interested in the <code>method_name</code>. The
+			grammar tells us that a <code>method_name</code> is either a
+			<code>METHOD_NAME</code> or an <code>expr</code>. If a symbol is
+			written in CAPITALS in the grammar, that means it refers to a
+			&ldquo;literal&rdquo;. In this case, to an actual method name (such as
+			<code>mysql_connect</code>). In PHP, it is also possible to call a
+			method whose name is stored in variable; in this case, the function
+			name will be a <code>reflection</code> node (which contains an
+			<code>expr</code>). In this tutorial, we are interested in
+			&ldquo;normal&rdquo; method invocations only. </p>
+			
+			<p> Literals (or &ldquo;<i>terminal symbols</i>&rdquo;) do not get
+			represented by a class called <code>AST_something</code>, but by a
+			class called <code>Token_something</code> instead. All classes
+			<code>Token_something</code> have an attribute called
+			<code>value</code> which corresponds to the value of the token. For
+			most tokens, the type of <code>value</code> is an STL
+			<code>String*</code>. However, for some tokens, for example
+			<code>INT</code>, <code>value</code> has a different type (e.g.,
+			<code>int</code>). If the token has a non-standard type, it will have
+			an additional attribute called <code>source_rep</code>, which
+			corresponds to the representation of the token in the source. For
+			example, the real number <code>5E-1</code> would have
+			<code>value</code> equal to the (<code>double</code>) 0.5, but
+			<code>source_rep</code> equal to (the <code>String*</code>)
+			&ldquo;5E-1&rdquo;. </p> 
+			
+			<p> Thus, we arrive at the following first attempt. </p>
+
+<pre>
+<b>#include</b> &lt;phc/Tree_visitor.h&gt;
+
+<b>class</b> MySQL2DBX : <b>public</b> Tree_visitor
+{
+<b>public</b>:
+   <b>void</b> post_method_invocation(AST_method_invocation* in)
+   {
+      Token_method_name* name;
+	  
+      name = <b>new</b> Token_method_name(<b>new</b> String("mysql_connect"));
+      <b>if</b>(in-&gt;method_name-&gt;match(name))
+      {
+         in-&gt;method_name = <b>new</b> Token_method_name(<b>new</b> String("dbx_connect"));
+      }
+   }
+};
+
+<b>extern</b> "C" <b>void</b> process_ast(AST_php_script* php_script)
+{
+   MySQL2DBX m2d;
+   php_script-&gt;visit(&amp;m2d);
+}
+</pre>
+
+			<p> <b>Note</b>: <span class="phc">phc</span> uses a garbage
+			collector, so there is never any need to free objects (you never have
+			to call <code>delete</code>). This makes programming much easier and
+			less error-prone (smaller chance of bugs). </p>
+
+			<p> <code>match</code> compares two (sub)trees for deep equality.
+			There is also another function called <code>deep_equals</code>,
+			which does nearly the same thing, but there are two important
+			differences. <code>match</code> does not take comments, line
+			numbers and other &ldquo;additional&rdquo; information into
+			account, whereas <code>deep_equals</code> does. The second
+			difference is that <code>match</code> supports wildcards; this will
+			be explained in <a href="tutorial3.html">Tutorial 3</a>.
+
+			<h2>Modifying the Parameters</h2>
+
+			Unfortunately, renaming <code>mysql_connect</code> to
+			<code>dbx_connect</code> is not sufficient, because the parameters to
+			the two functions differ. According to the <a
+			href="http://www.php.net/manual/en/index.php">PHP manual</a>, the
+			signatures for both functions are
+
+<pre>
+mysql_connect (server, username, password, new_link, int client_flags)
+</pre>
+
+			<p> and </p>
+
+<pre>
+dbx_connect (module, host, database, username, password, persistent)
+</pre>
+
+			<p> The <code>module</code> parameter to <code>dbx_connect</code>
+			should be set to <code>DBX_MYSQL</code> to connect to a MySQL
+			database. Then <code>host</code> corresponds to <code>server</code>,
+			and <code>username</code> and <code>password</code> have the same
+			purpose too. So, we should insert <code>DBX_MYSQL</code> at the front
+			of the list, and insert <code>NULL</code> in between <code>host</code>
+			and <code>username</code> (the <code>mysql_connect</code> command does
+			not select a database). The last two parameters to
+			<code>mysql_connect</code> do not have an equivalent in
+			<code>dbx_connect</code>, so if they are specified, we cannot perform
+			the conversion. The last parameter to <code>dbx_connect</code>
+			(<code>persistent</code>) is optional, and we will ignore it in this
+			tutorial. </p>
+
+			<p> Now, in <span class="phc">phc</span>, <code>DBX_MYSQL</code> is an
+			<code>AST_constant</code>. Because <span class="phc">phc</span> deals
+			with everything as being classes, a constant must also be defined in a
+			class. Constants defined in the PHP standard library, such as
+			<code>DBX_MYSQL</code>, should be defined in the special
+			&ldquo;class&rdquo; <code>%STDLIB%</code>. (For more information on
+			how PHP gets converted to the abstract syntax tree, see <a
+			href="representingphp.html">Representing PHP</a>.) <p> Finally,
+			<code>NULL</code> is represented by <code>Token_null</code>. </p>
+
+			<p> We are now ready to write our conversion function: </p>
+
+<pre>
+#include &lt;phc/Tree_visitor.h&gt;
+
+<b>class</b> MySQL2DBX : <b>public</b> Tree_visitor
+{
+<b>public</b>:
+   <b>void</b> post_method_invocation(AST_method_invocation* in)
+   {
+      AST_actual_parameter_list::iterator pos;
+      Token_constant_name* module_name;
+      AST_constant* module_constant;
+      AST_actual_parameter* param;
+      Token_method_name* name;
+	  
+      name = <b>new</b> Token_method_name(<b>new</b> String("mysql_connect"));
+      <b>if</b>(in-&gt;method_name-&gt;match(name))
+      {
+         <i>// Check for too many parameters</i>
+         <b>if</b>(in-&gt;actual_parameters-&gt;size() &gt; 3)
+         {
+            printf("Error: unable to translate call "
+               "to mysql_connect on line %d\n", in-&gt;get_line_number());
+            <b>return</b>;
+         }
+      
+         <i>// Modify name</i>
+         in-&gt;method_name = <b>new</b> Token_method_name(<b>new</b> String("dbx_connect"));
+      
+         <i>// Modify parameters</i>
+         module_name = <b>new</b> Token_constant_name(<b>new</b> String("DBX_MYSQL"));
+         module_constant = <b>new</b> AST_constant("%STDLIB%", module_name);
+         
+         pos = in-&gt;actual_parameters-&gt;begin();
+         param = <b>new</b> AST_actual_parameter(false, module_constant);
+         in-&gt;actual_parameters-&gt;insert(pos, param); pos++;
+         <i>/* Skip host */</i> pos++;
+         Token_null* null = <b>new</b> Token_null(<b>new</b> String("NULL"));
+         param = <b>new</b> AST_actual_parameter(false, null);
+         in-&gt;actual_parameters-&gt;insert(pos, param); 
+      }
+   }
+};
+
+<b>extern</b> "C" <b>void</b> process_ast(AST_php_script* php_script)
+{
+   MySQL2DBX m2d;
+   php_script-&gt;visit(&amp;m2d);
+}
+</pre>
+
+			<p> If we apply this transformation to </p>
+
+<pre>
+$link = mysql_connect('host', 'user', 'pass');
+</pre>
+
+			<p> We get </p>
+
+<pre>
+$link = dbx_connect(DBX_MYSQL, "host", NULL, "user", "pass");
+</pre>
+
+			<h2>Refactoring</h2>
+
+			<p> A quick note on refactoring. Refactoring is the process of
+			modifying existing programs (PHP scripts), usually to work in new
+			projects or in different setups (for example, with a different
+			database engine). Manual refactoring is laborious and error-prone, so
+			tool-support is a must. Although <span class="phc">phc</span> can be
+			used to refactor PHP code as shown in this tutorial, a dedicated
+			refactoring tool for PHP would be easier to use (though of course less
+			flexible). Such a tool can however be built on top of <span
+			class="phc">phc</span>. See also the list of <a
+			href="../spinoffs/index.html">Spinoff Projects</a>. </p>
+	
+			<h2> What's Next? </h2>
+	
+			<p> <a href="tutorial3.html">Tutorial 3</a> explains how you can
+			modify the <i>structure</i> of the tree, as well as the tree nodes.
+			</p>
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>
+

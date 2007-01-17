@@ -1,0 +1,255 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- the open source PHP compiler</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>What's in Store?</h1>
+
+			<p> Below are some of the features we are planning to add to <span
+			class="phc">phc</span>, approximately in the order we'd like to
+			implement them. Version 0.1.6 saw the last major improvement of the
+			tree transformation and tree visitor APIs; the focus is now on
+			implementing an IR (see first section, below). </p>
+
+			<h2>Intermediate Representation (IR)</h2>
+
+			<p> The first step towards actual compilation will be to translate PHP
+			scripts into an low-level intermediate representation. This
+			representation looks like machine language (or Java bytecode), but is
+			actually machine independent. The purpose of the IR is to define a
+			very simple language with as few constructs as possible, that exposes
+			most of the details that are implicit in PHP scripts, and over which
+			we can define all sorts of compiler optimizations. </p>
+
+			<p> To give you an idea, an if-statement such as </p>
+
+<pre>
+<b>if</b>($c == 1)
+  $d = $c * 2 + 1;
+</pre>
+
+ 			<p> might look like </p>
+
+<pre>
+   $r := $c.equals 1
+   $r := $r.not
+   <b>if</b> $r <b>goto</b> l1
+   $t := $c.mult 2
+   $d := ^$t.add 1
+l1:
+</pre>
+
+			<p> in the intermediate representation. We are currently investigating
+			what the IR should look like exactly. </p>
+
+			<h2>Generating Machine Code</h2>
+
+			<p> Once we have defined an IR and are able to translate PHP scripts
+			into this IR, we can start generating machine code. We will generate
+			Intel x86 code for Linux, although it should not be too difficult to
+			add support for other systems, too (esp. similar systems such as
+			FreeBSD). We might not support all features of PHP at first,
+			preferring to make <span class="phc">phc</span> useful for a (smaller)
+			class of scripts as soon as possible. </p>
+
+			<h2>Link to the PHP Standard Library</h2>
+
+			<p> Of course, the power of PHP lies in the PHP standard library.
+			Having finished code generation, we will make sure that PHP scripts
+			compiled with <span class="phc">phc</span> can make use of the
+			standard library as-is. </p>
+
+			<h2>Compile Extensions</h2>
+
+			<p> We are planning to make <span class="phc">phc</span> generate PHP
+			extensions that can be loaded into the PHP interpreter. This means
+			that you can write PHP extensions <i>in PHP</i> and use <span
+			class="phc">phc</span> to compile them. This will be very useful for
+			people that write extensions for the purpose of speed or protecting
+			proprietary code. </p>
+
+			<h2>Static Analyses and Code Optimization</h2>
+			
+			<p> Once all that is done, we can start the really interesting work:
+			optimizing scripts. Many of these optimizations require analyses that
+			are defined over the IR. It is our intention to make the results of
+			these analyses available at the AST level as well, so that it is
+			possible to define transformations that operate on PHP source (e.g.,
+			refactoring), but make use of analyses defined on the IR. Here are a
+			couple of optimizations we are planning to implement: </p>
+
+			<h3>Static Single Assignment (SSA) Form</h3>
+			
+			<p> SSA is a transformation on the IR that guarantees that every
+			variable only gets assigned in one location in the program. This is a
+			very useful optimization, because it makes many other optimizations
+			much easier to define. Consider the following PHP script </p>
+
+<pre>
+&lt;?<b>php</b>
+   $x = foo();
+   <b>echo</b> $x;
+
+   $x = $x + bar();
+   <b>echo</b> $x;
+?&gt;
+</pre>
+
+			<p> Gets translated into </p>
+
+<pre>
+&lt;?<b>php</b>
+   $x0 = foo();
+   <b>echo</b> $x0;
+
+   $x1 = $x0 + bar();
+   <b>echo</b> $x1;
+?&gt;
+</pre>
+
+			<p> This makes the relation between the assignments to variables and
+			the use of variables more obvious. This is useful for a number of
+			things. For example, consider a refactoring to make sure that the
+			result of <code>dbx_connect</code> always get stored in a variable
+			called <code>dbx_link</code>. Then, the following code </p>
+
+<pre>
+&lt;?<b>php</b>
+   $x = dbx_connect(...);
+   some_function($x);
+   
+   $x = some_other_function();
+   some_function($x);
+?&gt;
+</pre>
+
+			<p> should get translated to </p>
+
+<pre>
+&lt;?<b>php</b>
+   $dbx_link = dbx_connect(...);
+   some_function($dbx_link);
+   
+   $x = some_other_function();
+   some_function($x);
+?&gt;
+</pre>
+
+			<p> In particular, the second <code>some_function($x)</code> should
+			not be modified. Converting the program to SSA form first will make
+			this easier. </p>
+
+			<h3> Type Inference </h3>
+
+			<p> Type inference tries to find out the type of each variable. We
+			will do type inference on the SSA form of the program. This means that
+			every variable can only have a single type (because it is only
+			assigned once). Apart from compilation, type inference is useful for
+			numerous other tasks. As a simple example, consider implementing a
+			semantic checker (see <a href="../spinoffs/index.html">Spinoff
+			Projects</a>).  For example, in the following code, </p>
+
+<pre>
+$x = $x + $y;
+</pre>
+			
+			<p> if we can deduce that both <code>$x</code> and <code>$y</code>
+			have type <code>string</code>, we might issue a warning that the plus
+			(<code>+</code>) should probably be a dot (<code>.</code>) (PHP will
+			warn for this at run-time if <code>error_reporting</code> is set high
+			enough, but it is useful to catch these errors at compile time.) </p>
+
+			<p> For a more complicated example, consider renaming a class method.
+			If we rename method <code>foo</code> to <code>bar</code> in class
+			<i>A</i> (but not in class <i>B</i>) in the following example, </p>
+			
+<pre>
+&lt;?<b>php</b>
+   <b>class</b> A
+   {
+      <b>function</b> foo 
+      { 
+         <b>echo</b> "Hello "; 
+      }
+   }
+
+   <b>class</b> B
+   {
+      <b>function</b> foo 
+      { 
+         <b>echo</b> "world!"; 
+      }
+   }
+
+   $a = <b>new</b> A();
+   $b = <b>new</b> B();
+
+   $a-&gt;foo();
+   $b-&gt;foo();
+?&gt;
+</pre>
+
+			<p> we should get </p>
+
+<pre>
+&lt;?<b>php</b>
+   <b>class</b> A
+   {
+      <b>function</b> <span class="box">bar</span> 
+      { 
+         <b>echo</b> "Hello "; 
+      }
+   }
+
+   <b>class</b> B
+   {
+      <b>function</b> foo 
+      { 
+         <b>echo</b> "world!"; 
+      }
+   }
+
+   $a = <b>new</b> A();
+   $b = <b>new</b> B();
+
+   $a-&gt;<span class="box">bar()</span>;
+   $b-&gt;foo();
+?&gt;
+</pre>
+
+			<p> In particular, the line <code>$b-&gt;foo();</code> should not be
+			modified. We can only do this if we know that the type of
+			<code>$a</code> is A, and the type of <code>$b</code> is B. Type
+			inference cannot always be 100% accurate; in such a case, refactoring
+			should fail (or insert code to explicitly distinguish between a few
+			types). </p>
+
+			<p> So stay tuned :-) </p>
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

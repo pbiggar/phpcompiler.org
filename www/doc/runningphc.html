@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Running</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Running <span class="phc">phc</span></h1>
+
+			<p> Once you have <a href="install.html">installed</a> <span
+			class="phc">phc</span>, run it by typing </p>
+
+<pre>
+./phc --help
+</pre>
+		
+			<p> You should see something like </p>
+
+<pre>
+phc 0.1.6
+
+Usage: phc [OPTIONS]... [FILES]...
+
+  -h, --help                   Print help and exit
+      --full-help              Print help, including hidden options, and exit
+  -V, --version                Print version and exit
+      --dump-php               Dump PHP code back immediately after parsing to 
+                                 standard output (pretty printing)  
+                                 (default=off)
+      --dump-ast-dot           Dump the AST from the source in dot format  
+                                 (default=off)
+      --dump-ast-xml           Dump the AST from the source in XML format  
+                                 (default=off)
+      --compile-time-includes  When possible, replace include() statements with 
+                                 the parsed contents of the specified file  
+                                 (default=off)
+      --tab=STRING             String to use for tabs while unparsing  
+                                 (default=`     ')
+</pre>
+
+			<p> (the exact output will depend on the version of <span
+			class="phc">phc</span>) </p>
+
+			<p> Now write a very small PHP script, for example </p>
+
+<pre>
+&lt;? <b>echo</b> "Hello world!"; ?&gt;
+</pre>
+
+			<p> and store it in a file, for example in
+			<tt>helloworld.php</tt>. Then run <span class="phc">phc</span> as
+			follows: </p>
+
+<pre>
+./phc --dump-php helloworld.php
+</pre>
+
+			<p> This should output a pretty-printed version of your PHP script
+			back to standard output: </p>
+			
+<pre>
+&lt;?<b>php</b>
+   <b>echo</b> "Hello world!";
+?&gt;
+</pre>
+		
+			<h2> Graphical Output </h2>
+		
+			<p> <span class="phc">phc</span> represents PHP scripts
+			internally as trees (this is further explained in <a
+			href="tutorial1.html">Tutorial 1</a>). If you have a DOT viewer
+			installed on your system (for example, <a
+			href="http://www.graphviz.org">graphviz</a>), you can view this
+			tree graphically. First, ask <span class="phc">phc</span> to output
+			the tree in DOT format: </p>
+
+<pre>
+./phc --dump-ast-dot helloworld.php &gt; helloworld.dot
+</pre>
+
+			<p> You can then view the tree (<tt>helloworld.dot</tt>) using
+Graphviz. In most Unix/Linux systems, you should be able to do </p>
+
+<pre>
+dotty helloworld.dot
+</pre>
+
+			<p> And you should see the tree (it should look similar to the one <a
+			href="install/helloworld.png" target="_blank">we generated</a>).  </p>	
+
+			<h2><a name="xml">Writing and Reading XML</a></h2>
+
+			<p> <span class="phc">phc</span> can also output an XML representation
+			of the tree. You can use this representation if you want to process
+			PHP scripts without using the <span class="phc">phc</span> framework,
+			but yet using the <span class="phc">phc</span> abstract representation
+			of PHP scripts. To generate an XML version of the tree, run </p>
+
+<pre>
+./phc --dump-ast-xml helloworld.php &gt; helloworld.xml
+</pre>
+
+			<p> <span class="phc">phc</span> can also read the XML back in, after
+			which all the usual features of <span class="phc">phc</span> are again
+			available; in particular, it is possible to read an XML file, and
+			write PHP syntax. To convert the XML file we just generated back to
+			PHP syntax, run </p>
+
+<pre>
+./phc --read-ast-xml --dump-php helloworld.xml
+</pre>
+
+			<p>The generated XML uses the schema <a
+			href="http://www.phpcompiler.org/phc-1.0">http://www.phpcompiler.org/phc-1.0</a>.
+			</p>
+
+			<h2>Compile-time Includes</h2>
+
+			<p> <span class="phc">phc</span> now has initial support for
+			compile-time processing of PHP's <code>include</code> built-in.
+			Enabling this feature inserts the included statements in the AST in the
+			place of the <code>include</code> statement. Included functions become
+			part of the
+			%MAIN% class, and included classes become part of the script.  In the
+			event that <span class="phc">phc</span> is not able to process the
+			<code>include</code> statement (for example, if it would require
+			using the <code>remote</code> feature of <code>include</code>), a
+			warning is issued, and the <code>include</code> statement is left in
+			place. To enable this support, run </p>
+
+<pre>
+./phc --compile-time-includes script_with_includes.php
+</pre>
+
+			<p> The include support is intended to mimic <a
+			href="http://php.net/manual/en/function.include.php">PHP's include
+			built-in</a>, as far as can be achieved at compile time. <span
+			class="phc">phc</span> supports: </p>
+
+			<ul>
+				<li>Moving included statements to the point at which
+				<code>include</code> was called. Naturally, these statement's use
+				the variable scope at the point at which they are included,</li>
+
+				<li>Preserving <code>__FILE__</code> and <code>__LINE__</code> statements,</li>
+
+				<li>Moving included functions to the <code>%MAIN%</code> class, and
+				importing the included classes,</li>
+
+				<li><code>include</code>, and <code>require</code>. If the
+				specified file cannot be found, parsed, or if the argument to
+				<code>include</code> is not a string literal, the include statement
+				is left in place.</li>
+			</ul>
+
+			<span class="phc">phc</span> does not support:
+			<ul>
+				<li>Return values in included scripts. We intend to support these
+				in the future. They will likely be supported in a later stage of
+				the compilation process, instead of in the AST,</li>
+
+				<li>Calling <code>include</code> on anything other than a literal
+				string containing the filename of a local file. This excludes
+				variables and remote files. These may be supported when more static
+				analyses are available,</li>
+
+				<li><code>include_once</code> and <code>require_once</code>, as we
+				cannot guarantee that the file to be included is not included
+				elsewhere. These statements will not be processed, and combinations
+				of <code>include</code> or <code>require</code> and
+				<code>include_once</code> or <code>require_once</code> may cause
+				incorrect behaviour with this option set,</li>
+
+				<li>Updating <code>get_included_files()</code> to reflect the
+				included files.</li>
+			</ul>
+
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>

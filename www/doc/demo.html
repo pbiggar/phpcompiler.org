@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<title>phc -- Demo</title>
+		<link rel="stylesheet" type="text/css" href="../phc.css">
+	</head>
+	<body>
+		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<tr>
+			<td height="149" style="background: url(../img/header.png);">&nbsp;</td>
+		</tr>
+		<tr>
+			<td style="color: white; background-color: #8a7640;">
+				<a class="nav" href="../index.html">Home</a> | 
+				<a class="nav" href="../src/index.html">Downloads</a> | 
+				<a class="nav" href="../doc/index.html">Documentation</a> |
+				<a class="nav" href="../plugins/index.html">Plugins</a> |
+				<a class="nav" href="../spinoffs/index.html">Spinoff Projects</a> |
+				<a class="nav" href="../contact.html">Mailing List</a>
+			</td>
+		</tr>
+		<tr><td style="padding: 5px;">
+			<h1>Demo</h1>
+
+			This demo is intended as a quick introduction outlining what the
+			current release of <span class="phc">phc</span> can do for you. It
+			does not explain everything in detail. For more information on
+			implementing your own tools based on <span class="phc">phc</span>,
+			read <a href="gettingstarted.html">Getting Started</a>.
+
+			<h2>The Source Program</h2>
+			
+			Consider the following simple PHP script.
+
+<pre>
+&lt;?<b>php</b>
+   <b>function</b> foo()
+   {
+      <b>return</b> 5;
+   }
+
+   $foo = foo();
+   <b>echo</b> "foo is $foo&lt;br&gt;";
+?&gt;
+</pre>
+
+			Internally this program gets represented as an <a
+			href="gettingstarted.html">abstract syntax tree</a> (open <a
+			href="demo/demo.png" target="_blank">demo.png</a> to see the
+			tree).
+
+			<h2>The Transform</h2>
+
+			Suppose we want to rename function <code>foo</code> to
+			<code>bar</code>. This is done by the following (C++) program:
+
+<pre>
+<b>#include</b> "Tree_visitor.h"
+
+<b>class</b> Rename_foo_to_bar : <b>public</b> Tree_visitor
+{
+   <b>void</b> pre_method_name(Token_method_name* in)
+   {
+      <b>if</b>(*in-&gt;get_value == "foo")
+         in-&gt;value = <b>new</b> String("bar");
+   }
+};
+</pre>
+
+			Finally, we need to instruct <span class="phc">phc</span> to run our
+			transform:
+
+<pre>
+Rename_foo_to_bar f2b;
+php_script-&gt;transform(&amp;f2b);
+</pre>					
+
+			<h2>The Result</h2>
+
+			Running <span class="phc">phc</span> gives
+
+<pre>
+&lt;?<b>php</b>
+   <b>function</b> bar()
+   {
+      <b>return</b> 5;
+   }
+
+   $foo = bar();
+   <b>echo</b> "foo is " . $foo . "&lt;br&gt;";
+?&gt;
+</pre>
+
+			where the name of the function has been changed, while the name of the
+			variable remained unaltered, as has the text <code>"foo"</code> inside
+			the string. It's that simple! Of course, in this example, it would
+			have been quicker to do it by hand, but that's not the point; the
+			example shows how easy it is to operate on PHP scripts within the
+			<span class="phc">phc</span> framework.
+
+		</td></tr>
+		<tr>
+			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $. Contents &copy; the <a href="../authors.html">authors</a>.
+			</td>
+		</tr>
+		</table>
+	</body>
+</html>
