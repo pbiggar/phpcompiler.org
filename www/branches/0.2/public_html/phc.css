@@ -1,0 +1,11 @@
+body {
+	margin: 0pt;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	color: blue;
+}
+a:hover {
+	text-decoration: underline;
+}
