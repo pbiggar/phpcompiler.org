@@ -1,5 +1,7 @@
 body {
 	margin: 0pt;
+	font-family: sans-serif;
+	font-size: 10pt;
 }
 
 a:link, a:visited {
@@ -8,4 +10,12 @@ a:link, a:visited {
 }
 a:hover {
 	text-decoration: underline;
+}
+
+h1 {
+	font-size: 16pt;
+}
+
+span.phc {
+	color: #882222;
 }
