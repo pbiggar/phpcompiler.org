@@ -1,0 +1,3 @@
+<FilesMatch "(.svn|format|text-base|.svn-base|empty-file|README.txt|tmp|props|prop-base|.svn-work|entries)$">
+	Deny from all
+</FilesMatch>
