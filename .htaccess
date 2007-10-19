@@ -1,3 +1,9 @@
+# Prevent .svn files from being visible (cant use location or directory commands from within a .htaccess file)
 <FilesMatch "(.svn|format|text-base|.svn-base|empty-file|README.txt|tmp|props|prop-base|.svn-work|entries)$">
-	Deny from all
+       Deny from all
 </FilesMatch>
+
+# index.html is actually a PHP file
+<Files index.html>
+ForceType application/x-httpd-php 
+</Files>
