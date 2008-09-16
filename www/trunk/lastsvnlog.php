@@ -1,37 +1,22 @@
 <?php
-	define(LASTLOG, "lastsvnlog.html");
 
-	// Figure out whether to re-generate the last log
-	$generate = False;
-	$statistics = @stat(LASTLOG);
-	if($statistics === False)
-	{
-		$generate = True;
-	}
-	else
-	{
-		$currentTime = time();
-		$age = ($currentTime - $statistics["mtime"]) / 60;
-		$generate = $age > 5;
-	}
+	// Do not put this in the web root, it could overwrite an arbitrary file!!
+	if (preg_match ("/www|public_html/", __FILE__))
+		die ("Do not run from web root!!");
 
-	if($generate)
-	{
-		// Get the most recent log
-		$mostRecentLog = prettify_log(get_svn_log("HEAD", $revMostRecent)); 
-		$mostRecent_1  = prettify_log(get_svn_log($revMostRecent - 1, $dummy));
-		$mostRecent_2  = prettify_log(get_svn_log($revMostRecent - 2, $dummy));
+	define(LASTLOG, $argv[0]);
 
-		$lastWeek = date("Y-m-d", time() - (7 * 24 * 60 * 60));
-		$lastWeekLog = get_svn_log("{" . $lastWeek . "}", $revLastWeek);
+	// Get the most recent log
+	$mostRecentLog = prettify_log(get_svn_log("HEAD", $revMostRecent)); 
+	$mostRecent_1  = prettify_log(get_svn_log($revMostRecent - 1, $dummy));
+	$mostRecent_2  = prettify_log(get_svn_log($revMostRecent - 2, $dummy));
 
-		$numRevisions[] = "<p>There were " . ($revMostRecent - $revLastWeek) . " commits in the last 7 days. Most recent:</p>";
-		$output = array_merge($numRevisions, $mostRecentLog, $mostRecent_1, $mostRecent_2);
-		fwrite_array(LASTLOG, $output);
-	}
+	$lastWeek = date("Y-m-d", time() - (7 * 24 * 60 * 60));
+	$lastWeekLog = get_svn_log("{" . $lastWeek . "}", $revLastWeek);
 
-	$log = file_get_contents (LASTLOG);
-	echo $log;
+	$numRevisions[] = "<p>There were " . ($revMostRecent - $revLastWeek) . " commits in the last 7 days. Most recent:</p>";
+	$output = array_merge($numRevisions, $mostRecentLog, $mostRecent_1, $mostRecent_2);
+	fwrite_array(LASTLOG, $output);
 
 	
 	function fwrite_array($filename, $arr)
