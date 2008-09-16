@@ -6,108 +6,111 @@
 		<link rel="stylesheet" type="text/css" href="phc.css">
 	</head>
 	<body>
-		<table width="796" align="center" cellspacing="0" cellpadding="2" style="border: #8a7640 solid 1px;">
+		<table width="100%" cellpadding="0" cellspacing="0">
 		<tr>
-			<td height="149" style="background: url(img/header.png);">&nbsp;</td>
+			<td class=grey><img src="img/header.png"></td>
 		</tr>
 		<tr>
-			<td style="color: white; background-color: #8a7640;">
-				<a class="nav" href="index.html">Home</a> | 
-				<a class="nav" href="src/index.html">Downloads</a> | 
-				<a class="nav" href="doc/index.html">Documentation</a> |
-				<a class="nav" href="plugins/index.html">Plugins</a> |
-				<a class="nav" href="spinoffs/index.html">Spinoff Projects</a> |
-				<a class="nav" href="contact.html">Mailing List</a>
+			<td class=linkbar>
+				<a href="index.html">Home</a> | 
+				<a href="src/index.html">Downloads</a> | 
+				<a href="manual/usermanual.html">User Documentation</a> | 
+				<a href="developers.html">Developers and Contributors</a> |
+				<a href="mailinglist.html">Mailing Lists</a> |
+				<a href="spinoffs/index.html">Spinoff Projects</a> |
+				<a href="bugs.html">Bugs</a>
 			</td>
 		</tr>
-		<tr><td>
-			<table width="100%" cellpadding="5"><tr>
-			<td width="67%" style="border-right: solid #8a7640 1px;" valign="top">
-				<h1>What is <span class="phc">phc</span>?</h1>
+		</table>
+		<div style="padding: 5px;">
+			<table width="100%">
+			<tr>
+				<td colspan=2>
+					<div class=warningbox>
+					<h1>Contributors needed</h1>
+					<p><span class=phc>phc</span> is looking for
+					contributors to help complete the compiler, add new features,
+					and further test existing functionality. Developers who are
+					familiar with (or willing to learn) the PHP C API are
+					particularly desired, but anybody with a knowledge of C++, C or
+					PHP are appreciated. See the <a
+					href="developers.html">Developers and Contributors</a> for more
+					details.</p></div>
+				</td>
+			</tr>
+			<tr>
+				<td width="34%" valign="top">
 
-				<p> <span class="phc">phc</span> is a framework for static analysis
-				of PHP scripts, PHP source to source transformations, and
-				ultimately compiling PHP scripts down to native machine code. </p>
-			
-				<p> The current release <b>does not yet compile PHP</b> and is
-				therefore not yet useful for end-users. It is however useful for
-				writing tools that operate on PHP scripts, such as refactoring
-				tools, aspect weavers, or obfuscators (see <a
-				href="spinoffs/index.html">Spinoffs</a> for some other
-				suggestions). See <a href="doc/whatsinstore.html">What's in Store</a>
-				to get an idea of what is planned for next releases of <span
-				class="phc">phc</span>. </p>
-
-				<p> <span class="phc">phc</span> provides the programmer with a <a
-				href="doc/manual/grammar.html">well-defined</a> representation of PHP
-				scripts (an abstract syntax tree or AST), an <a
-				href="doc/manual/index.html">API</a> to define analyses and
-				transformations over this representation, and an unparser to output
-				the AST back to PHP syntax. See the <a
-				href="doc/manual/demo.html">Demo</a> for a quick idea of what <span
-				class="phc">phc</span> can do for you, or the <a
-				href="doc/manual/index.html">Documentation</A> to get started with <span
-				class="phc">phc</span>.</p>
-
-				<h2>Most recent <tt>subversion</tt> log</h2>
-
-				<p> We are working hard on getting code generation done. Here are the
-				most recent logs from our <a
-				href="http://code.google.com/p/phc/source"><tt>svn</tt> repository</a>.
-				</p>
-
-				<div style="color: #b53614; background: #efdba7; border: solid 1px #8a7640; margin: 5px; padding: 3px;">
-				<?php include("lastsvnlog.html"); ?>
-				</div>
-
-			</td>
-			<td width="33%" valign="top">
-				<h1>Contact Us</h1>
-	
-				<p> We are more than happy to answer any questions about <span
-				class="phc">phc</span>. So please do not hesitate to join the <span
-				class="phc">phc</span> mailing list, where we will try our best to
-				answer any queries as quickly as we can. You can join below. </p>
-			
-				<form method="post" action="https://nova.villiros.com/cgi-bin/mailman/subscribe/phc-general">
-				<table bgcolor="#efdba7" cellpadding="3" style="border: #8a7640 solid 1px;" align="center">
-				<tr>
-				<td>Email</td><td><input type="text" name="email"></td>
-				</tr><tr>
-				<td colspan="2" align="right"><input type="submit" name="email-button" value="Subscribe"></td>
-				</tr>
-				</table>
-				</form>
-			
-				<h1>News</h1>
-			
-				<p> <i><a href="news.html#2007jan17">17 January 2007</a></i>. The <span
-				class="phc">phc</span> SVN repository is now publicly available.
-				Read the <a
-				href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
-				for more details. </p>
-
-				<p> <i><a href="news.html#2006sept09">8 September 2006</a></i>. We
-				are delighted to announce the first spin-off based on <span
-				class="phc">phc</span>. Written by Daniel Barreiro, it embeds
-				HTML/XML into PHP. See <a href="spinoffs">spinoffs</a> for details.
-				In further news, we have released version <b>0.1.7</b> as no major
-				programs were reported in 0.1.7rc2, and we have added a new article
-				on <a href="articles/reentrantparser.html">writing a reentrant
-				parser with Bison and Flex</a>. </p>
-
-			<p> See the <a href="news.html">news archive</a> for older news.
-			</p>
 				
-			</td>
-			</tr></table>
-		</td></tr>
-		<tr>
-			<td style="border-top: solid #8a7640 1px; font-size: 8pt; background-color: #efdca5;">
+					<h1>What is <span class="phc">phc</span>?</h1>
+
+					<p><span class="phc">phc</span> is an open source compiler for
+					PHP with support for plugins. In addition, it can be used to
+					pretty-print or obfuscate PHP code, as a framework for
+					developing applications that process PHP scripts, or to convert
+					PHP into XML and back, enabling processing of PHP scripts using
+					XML tools.</p>
+
+					<p><span class="phc">phc</span> for PHP programmers (See <a href="manual/usermanual.html">User Documentation</a>):
+						<ul>
+							<li>Compile PHP source into an (optimized) executable.</li>
+							<li>Compile a web application into an (optimized) extension.</li>
+							<li>Pretty-print PHP code.</li>
+							<li>Obfuscate PHP code <i>(experimental)</i>.</li>
+							<li>Combine many php scripts into a single file <i>(experimental)</i>.</li>
+						</ul>
+					</p>
+
+					<p><span class="phc">phc</span> for tools developers (See <a href="developers.html">Developers and Contributors</a>):
+						<ul>
+							<li>Analyse, modify or refactor PHP scripts using C++ plugins.</li>
+							<li>Convert PHP into a well-defined XML format, process it
+							with your own tools, and convert it back to PHP.</li>
+							<li>Operate on ASTs, simplified ASTs, or 3-address code.</li>
+							<li>Analyse PHP code using an SSA-based IR (in the <a href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a> branch).</li>
+						</ul>
+					</p>
+
+					  
+					<h1>News</h1>
+					<p><i><a href="news.html#2007jan17">17 January 2007</a></i>. The
+					<span class="phc">phc</span> SVN repository is now publicly
+					available.  Read the <a
+					href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
+					for more details. </p>
+
+					<p><i><a href="news.html#2006sept09">8 September 2006</a></i>.
+					We are delighted to announce the first spin-off based on <span
+					class="phc">phc</span>. Written by Daniel Barreiro, it embeds
+					HTML/XML into PHP. See <a href="spinoffs">spinoffs</a> for
+					details.  In further news, we have released version <b>0.1.7</b>
+					as no major programs were reported in 0.1.7rc2, and we have
+					added a new article on <a
+					href="articles/reentrantparser.html">writing a reentrant parser
+					with Bison and Flex</a>. </p>
+
+					<p>See the <a href="news.html">news archive</a> for older news.</p>
+				
+				</td>
+					<td width="20%">
+
+					  <div class="svn">
+						  <h1>Recent project activity:</h1>
+
+						  <?php include("lastsvnlog.html") ?>
+					  </div>
+
+					  </td>
+
+
+				</tr>
+		</table>
+		<table width=100%>
+			<tr>
+				<td class=linkbar>
 				$LastChangedDate: 2007-01-17 15:55:22 +0000 (Wed, 17 Jan 2007) $.
-				Contents &copy; the <a href="authors.html">authors</a>.
-			</td>
-		</tr>
+				</td>
+			</tr>
 		</table>
 	</body>
 </html>
