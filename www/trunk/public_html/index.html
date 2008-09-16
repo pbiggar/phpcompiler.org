@@ -22,88 +22,80 @@
 			</td>
 		</tr>
 		</table>
-		<div style="padding: 5px;">
-			<table width="100%">
-			<tr>
-				<td colspan=2>
-					<div class=warningbox>
-					<h1>Contributors needed</h1>
-					<p><span class=phc>phc</span> is looking for
-					contributors to help complete the compiler, add new features,
-					and further test existing functionality. Developers who are
-					familiar with (or willing to learn) the PHP C API are
-					particularly desired, but anybody with a knowledge of C++, C or
-					PHP are appreciated. See the <a
-					href="developers.html">Developers and Contributors</a> for more
-					details.</p></div>
-				</td>
-			</tr>
-			<tr>
-				<td width="34%" valign="top">
+		<table width="100%">
+		<tr>
+			<td colspan=2>
+				<div class=warningbox>
+				<h1>Contributors needed</h1>
+				<p><span class=phc>phc</span> is looking for
+				contributors to help complete the compiler, add new features,
+				and further test existing functionality. Developers who are
+				familiar with (or willing to learn) the PHP C API are
+				particularly desired, but anybody with a knowledge of C++, C or
+				PHP are appreciated. See the <a
+				href="developers.html">Developers and Contributors</a> for more
+				details.</p></div>
+			</td>
+		</tr>
+		<tr>
+			<td width="34%" valign="top">
 
-				
-					<h1>What is <span class="phc">phc</span>?</h1>
+				<h1>What is <span class="phc">phc</span>?</h1>
 
-					<p><span class="phc">phc</span> is an open source compiler for
-					PHP with support for plugins. In addition, it can be used to
-					pretty-print or obfuscate PHP code, as a framework for
-					developing applications that process PHP scripts, or to convert
-					PHP into XML and back, enabling processing of PHP scripts using
-					XML tools.</p>
+				<p><span class="phc">phc</span> is an open source compiler for PHP
+				with support for plugins. In addition, it can be used to
+				pretty-print or obfuscate PHP code, as a framework for developing
+				applications that process PHP scripts, or to convert PHP into XML
+				and back, enabling processing of PHP scripts using XML tools.</p>
 
-					<p><span class="phc">phc</span> for PHP programmers (See <a href="manual/usermanual.html">User Documentation</a>):
-						<ul>
-							<li>Compile PHP source into an (optimized) executable.</li>
-							<li>Compile a web application into an (optimized) extension.</li>
-							<li>Pretty-print PHP code.</li>
-							<li>Obfuscate PHP code <i>(experimental)</i>.</li>
-							<li>Combine many php scripts into a single file <i>(experimental)</i>.</li>
-						</ul>
-					</p>
+				<p><span class="phc">phc</span> for PHP programmers (See <a href="manual/usermanual.html">User Documentation</a>):
+					<ul>
+						<li>Compile PHP source into an (optimized) executable.</li>
+						<li>Compile a web application into an (optimized) extension.</li>
+						<li>Pretty-print PHP code.</li>
+						<li>Obfuscate PHP code <i>(experimental)</i>.</li>
+						<li>Combine many php scripts into a single file <i>(experimental)</i>.</li>
+						<li>Optimize PHP code using an classical compiler optimizations (<i>in the <a href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a> branch, very experimental</i>).</li>
+					</ul>
+				</p>
 
-					<p><span class="phc">phc</span> for tools developers (See <a href="developers.html">Developers and Contributors</a>):
-						<ul>
-							<li>Analyse, modify or refactor PHP scripts using C++ plugins.</li>
-							<li>Convert PHP into a well-defined XML format, process it
-							with your own tools, and convert it back to PHP.</li>
-							<li>Operate on ASTs, simplified ASTs, or 3-address code.</li>
-							<li>Analyse PHP code using an SSA-based IR (in the <a href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a> branch).</li>
-						</ul>
-					</p>
+				<p><span class="phc">phc</span> for tools developers (See <a href="developers.html">Developers and Contributors</a>):
+					<ul>
+						<li>Analyse, modify or refactor PHP scripts using C++ plugins.</li>
+						<li>Convert PHP into a well-defined XML format, process it
+						with your own tools, and convert it back to PHP.</li>
+						<li>Operate on ASTs, simplified ASTs, or 3-address code.</li>
+						<li>Analyse PHP code using an SSA-based IR (<i>in the <a href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a> branch, very experimental</i>).</li>
+					</ul>
+				</p>
 
-					  
-					<h1>News</h1>
-					<p><i><a href="news.html#2007jan17">17 January 2007</a></i>. The
-					<span class="phc">phc</span> SVN repository is now publicly
-					available.  Read the <a
-					href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
-					for more details. </p>
+				<h1>News</h1>
+				<p><i><a href="news.html#2007jan17">17 January 2007</a></i>. The
+				<span class="phc">phc</span> SVN repository is now publicly
+				available.  Read the <a
+				href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
+				for more details. </p>
 
-					<p><i><a href="news.html#2006sept09">8 September 2006</a></i>.
-					We are delighted to announce the first spin-off based on <span
-					class="phc">phc</span>. Written by Daniel Barreiro, it embeds
-					HTML/XML into PHP. See <a href="spinoffs">spinoffs</a> for
-					details.  In further news, we have released version <b>0.1.7</b>
-					as no major programs were reported in 0.1.7rc2, and we have
-					added a new article on <a
-					href="articles/reentrantparser.html">writing a reentrant parser
-					with Bison and Flex</a>. </p>
+				<p><i><a href="news.html#2006sept09">8 September 2006</a></i>.  We
+				are delighted to announce the first spin-off based on <span
+				class="phc">phc</span>. Written by Daniel Barreiro, it embeds
+				HTML/XML into PHP. See <a href="spinoffs">spinoffs</a> for details.
+				In further news, we have released version <b>0.1.7</b> as no major
+				programs were reported in 0.1.7rc2, and we have added a new article
+				on <a href="articles/reentrantparser.html">writing a reentrant
+				parser with Bison and Flex</a>. </p>
 
-					<p>See the <a href="news.html">news archive</a> for older news.</p>
-				
-				</td>
-					<td width="20%">
+				<p>See the <a href="news.html">news archive</a> for older news.</p>
+			
+			</td>
+			<td width="20%">
+				<div class="svn">
+					<h1>Recent project activity:</h1>
 
-					  <div class="svn">
-						  <h1>Recent project activity:</h1>
-
-						  <?php include("lastsvnlog.html") ?>
-					  </div>
-
-					  </td>
-
-
-				</tr>
+					<?php include("lastsvnlog.html") ?>
+				</div>
+		  </td>
+		</tr>
 		</table>
 		<table width=100%>
 			<tr>
