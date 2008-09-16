@@ -1,11 +1,5 @@
 <?php
 
-	// Do not put this in the web root, it could overwrite an arbitrary file!!
-	if (preg_match ("/www|public_html/", __FILE__))
-		die ("Do not run from web root!!");
-
-	define(LASTLOG, $argv[0]);
-
 	// Get the most recent log
 	$mostRecentLog = prettify_log(get_svn_log("HEAD", $revMostRecent)); 
 	$mostRecent_1  = prettify_log(get_svn_log($revMostRecent - 1, $dummy));
@@ -16,14 +10,12 @@
 
 	$numRevisions[] = "<p>There were " . ($revMostRecent - $revLastWeek) . " commits in the last 7 days. Most recent:</p>";
 	$output = array_merge($numRevisions, $mostRecentLog, $mostRecent_1, $mostRecent_2);
-	fwrite_array(LASTLOG, $output);
+	echo_array($output);
 
 	
-	function fwrite_array($filename, $arr)
+	function echo_array($arr)
 	{
-		$fHandle = fopen($filename, "wt");
-		foreach($arr as $line) fwrite($fHandle, "$line\n");
-		fclose($fHandle);
+		foreach($arr as $line) echo ("$line\n");
 	}
 
 	function get_svn_log($revision, &$revNo)
