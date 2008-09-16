@@ -30,7 +30,9 @@
 		fwrite_array(LASTLOG, $output);
 	}
 
-	include LASTLOG;
+	$log = file_get_contents (LASTLOG);
+	echo $log;
+
 	
 	function fwrite_array($filename, $arr)
 	{
@@ -59,11 +61,16 @@
 		unset($log[0]);
 		array_pop($log);
 
+		foreach($log as $key => $line)
+		{
+			$log[$key] = htmlentities($log[$key]);
+		}
+
 		// Highlight the date in bold
 		$dateLine = $log[1];
 		$bits = explode(" | ", $dateLine);
 		$lastRevision = substr($bits[0], 1);
-		$bits[2] = "<b>" . str_replace(" ", "&nbsp;", $bits[2]) . "</b>";
+		$bits[2] = "<b>" . $bits[2] . "</b>";
 		$log[1] = "<p>" . implode(" | ", $bits) . "</p><p>";
 		$log[] = "</p>";
 
