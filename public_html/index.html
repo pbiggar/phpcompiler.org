@@ -13,15 +13,15 @@
 		<tr>
 			<td class=linkbar>
 				<a href="index.html">Home</a> | 
-				<a href="downloads.html">Downloads</a> | 
+				<a href="downloads.html">Download <span class=phc>phc</span></a> | 
 				<a href="documentation.html">Documentation</a> | 
 				<a href="developers.html">Developers and Contributors</a> |
 				<a href="mailinglist.html">Mailing List</a> |
 			</td>
 		</tr>
 		</table>
-		<table width="100%">
-		<tr>
+		<table class=maintable>
+		<tr >
 			<td colspan=2>
 				<div class=warningbox>
 				<h1>Contributors needed</h1>
@@ -36,8 +36,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td width="34%" valign="top">
-
+			<td>
 				<h1>What is <span class="phc">phc</span>?</h1>
 
 				<p><span class="phc">phc</span> is an open source compiler for PHP
@@ -46,18 +45,23 @@
 				applications that process PHP scripts, or to convert PHP into XML
 				and back, enabling processing of PHP scripts using XML tools.</p>
 
-				<p><span class="phc">phc</span> for PHP programmers (See <a href="manual/usermanual.html">User Documentation</a>):
+				<p><span class="phc">phc</span> for PHP programmers (See <a
+				href="manual/usermanual.html">User Documentation</a>):
 					<ul>
 						<li>Compile PHP source into an (optimized) executable.</li>
 						<li>Compile a web application into an (optimized) extension.</li>
 						<li>Pretty-print PHP code.</li>
 						<li>Obfuscate PHP code <i>(experimental)</i>.</li>
 						<li>Combine many php scripts into a single file <i>(experimental)</i>.</li>
-						<li>Optimize PHP code using an classical compiler optimizations (<i>in the <a href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a> branch, very experimental</i>).</li>
+						<li>Optimize PHP code using an classical compiler
+						optimizations (<i>in the <a
+						href="http://code.google.com/p/phc/source/browse/branches/dataflow">dataflow</a>
+						branch, very experimental</i>).</li>
 					</ul>
 				</p>
 
-				<p><span class="phc">phc</span> for tools developers (See <a href="developers.html">Developers and Contributors</a>):
+				<p><span class="phc">phc</span> for tools developers (See <a
+				href="developers.html">Developers and Contributors</a>):
 					<ul>
 						<li>Analyse, modify or refactor PHP scripts using C++ plugins.</li>
 						<li>Convert PHP into a well-defined XML format, process it
@@ -86,7 +90,7 @@
 				<p>See the <a href="news.html">news archive</a> for older news.</p>
 			
 			</td>
-			<td width="20%" valign=top>
+			<td width="35%" valign=top>
 				<div class="svn">
 					<h1>Recent project activity:</h1>
 
@@ -95,12 +99,8 @@
 		  </td>
 		</tr>
 		</table>
-		<table width=100%>
-			<tr>
-				<td class=linkbar>
-				$LastChangedDate$.
-				</td>
-			</tr>
+		<table class=linkbar>
+			<tr><td>$LastChangedDate$.</td></tr>
 		</table>
 	</body>
 </html>
