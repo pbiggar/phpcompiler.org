@@ -34,6 +34,7 @@ a:hover {
 .warningbox {
 	border: solid 1px black;
 	padding: 5px;
+	margin: 5px;
 	color: #b53614;
 	background: #efdba7;
 }
