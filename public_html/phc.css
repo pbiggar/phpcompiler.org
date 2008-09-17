@@ -53,3 +53,21 @@ a:hover {
 }
 .headertable {
 }
+
+/* For articles */
+code {
+	color: #b53614;
+	background-color: inherit;
+}
+pre {
+	color: #b53614;
+	background: #efdba7;
+	border: solid 1px #8a7640;
+	margin: 5px;
+	padding: 3px;
+}
+code > i, pre > i {
+	color: black;
+	background-color: inherit;
+}
+
