@@ -30,8 +30,7 @@
 
 				<p>If you have any of the following skills, or are willing to learn
 				them, we could do with your help (if you dont know what to do, but
-				want to help, ask us on the <span class=phc>phc</span>-general
-				list, we're friendly):</p>
+				want to help, ask us on the phc-general list, we're friendly):</p>
 
 			<ul>
 				<li>
@@ -47,10 +46,10 @@
 					<h3>C++:</h3>
 
 						<p>The compiler is written in C++, and most changes require some
-						C++.  Fortunately, most of the C++ we use is simple, and the
-						only exceptions (templates) are rare. A good way to find
-						things to do is to grep the current sources for TODO
-						comments.</p>
+						C++. Fortunately, most of the C++ we use is simple, and the
+						only exceptions (templates) are relatively rare. A good way
+						to find things to do is to grep the current sources for
+						<i>TODO</i> comments.</p>
 
 				</li>
 				<li>
@@ -65,10 +64,20 @@
 
 
 						<p>If you know C, perhaps you'd like to look at code
-						generation.  Even if you arent familiar with the Zend API,
-						you can learn it through reading the current code we
-						generate, looking at the PHP sources (in the Zend folder), or
-						through reading Sara Golemons book.</p>
+						generation. Even if you arent familiar with the Zend API,
+						you can learn it by:
+							<ul>
+								<li>reading the current C code which <span class=phc>phc</span> generates</li>
+								<li>rading the PHP sources (in the Zend folder)</li>
+								<li><a href="http://www.amazon.com/Extending-Embedding-PHP-Developers-Library/dp/067232704X">Sara Golemon's book</a></li>
+								<li><a href="http://talks.php.net/index.php/Internals">Presentations</a> (and <a href="http://talks.somabo.de/20080721.pdf">another</a>)</li>
+								
+								<li>PHP internals articles
+										(<a href="http://devzone.zend.com/node/view/id/1021">1</a>,
+										<a href="http://www.trickie.org/code/zend_engine_two/">2</a>)
+								</li>
+							</ul>
+						</p>
 
 				</li>
 				<li>
@@ -77,10 +86,11 @@
 						<p>Our test framework needs a lot of love. The most important
 						fix is to support the PHPT tests from PHP.</p>
 
-						<p>We have a test bot (see test/framework/records), that
-						checks out each version from our repository, builds it, tests
-						it, and records the results. Issue 61 details a number of
-						changes we'd like to more fully test each revision.</p>
+						<p>We have a test bot (see <a
+						href="http://code.google.com/p/phc/source/browse/trunk/test/framework/records">test/framework/records</a>),
+						that checks out each version from our repository, builds it,
+						tests it, and records the results. Issue 61 details a number
+						of changes we'd like to more fully test each revision.</p>
 
 				</li>
 				<li>
@@ -120,6 +130,26 @@
 				tell us what you're interested in working on. If you have no
 				preference, we can point you in the right direction.</p>
 
+			<h3>Bug reports:</h3>
+
+				<p>Please report bugs directly to the phc-general list. We can
+				update the issue tracker from there. The list archives may provide
+				hints to you, but you should feel free to contact us.</p>
+
+				<p>After seeing real bugs, we generally fix them on the spot. Bugs
+				which we cannot fix immediately, we add to our bug database.</p>
+
+				<p>If you have a program which shows the bug, that would be
+				incredibly helpful. If you are able to fix the bug, please send us
+				patches. We will verify them and apply them (and add your name to
+				the contributors list). If your program is too long to send as a
+				bug report, our test suite includes the <a
+				href="http://code.google.com/p/phc/source/browse/trunk/test/framework/reduce">reduce</a>
+				script. This iteratively removes statements from your program, so
+				long as the bug remains. It has in the past been useful for
+				reducing test cases, and may be useful for you.</p>
+
+
 			<h3>Mailing lists:</h3>
 
 				<p>phc-general is for questions where most users of the <span
@@ -137,28 +167,11 @@
 				passes, which are either visitors or transforms, work. Other passes
 				are typically once-off, and the code is the documentation. If there
 				is any code where the intent and function of the code is not clear
-				from the code/documentation, please bring it to our attention, and
+				from the code or documentation, please bring it to our attention, and
 				we will explain it.</p>
 
-				<p>The best place to look for a first taste is the Demo TODO link.</p>
 
-			<h3>Bug reports:</h3>
 
-				<p>Please report bugs directly to the phc-general list. We can
-				update the issue tracker from there. The list archives may provide
-				hints to you, but you should feel free to contact us.</p>
-
-				<p>After seeing real bugs, we generally fix them on the spot. Bugs
-				which we cannot fix immediately, we add to our bug database.</p>
-
-				<p>If you have a program which shows the bug, that would be
-				incredibly helpful. If you are able to fix the bug, please send us
-				patches. We will verify them and apply them (and add your name to
-				the contributors list). If your program is too long to send as a
-				bug report, our test suite includes the reduce.php script. This
-				iteratively removes statements from your program, so long as the
-				bug remains. It has in the past been useful for reducing test
-				cases, and may be useful for you.</p>
 
 
 			<h1>Past contributors</h1>
