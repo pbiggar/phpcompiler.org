@@ -53,6 +53,12 @@ a:hover {
 }
 .headertable {
 }
+.devel_links {
+	background: #cccccc;
+}
+.devel_links.tr.td {
+	align: center;
+}
 
 /* For articles */
 code {
@@ -70,4 +76,3 @@ code > i, pre > i {
 	color: black;
 	background-color: inherit;
 }
-
