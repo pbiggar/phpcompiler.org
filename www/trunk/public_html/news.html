@@ -25,90 +25,115 @@
 			<td>
 				<h1>News Archive</h1>
 
-				<p><i><a name="2008sep21-2">21 September 2008</a></i>.
-				phpcompiler.org has been given an overhaul. Although most of the
-				changes are behind the scenes, we've added a contribution page, to
-				make it easier for potential contributors to contribute to <span
-				class=phc>phc</span>.
-
-				<p><i><a name="2008sep21">21 September 2008</a></i>. The first
-				alpha release of <span class="phc">phc</span> version 0.2.0 has
-				been made available.  The major change is this is the first version
-				which compiles PHP code into an executable, or into a C extension.
-				This allows speed-ups of approximately 1.50 (programs takes 33%
-				less time to run).</p>
-
-				<p><i><a name="2007jan17">17 January 2007</a></i>. The <span
-				class="phc">phc</span> SVN repository is now publicly available.
-				Read the <a
-				href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
-				for more details.</p>
-
-				<p><i><a name="2006sept09">8 September 2006</a></i>. We are delighted
-				to announce the first spin-off based on <span class="phc">phc</span>.
-				Written by Daniel Barreiro, it embeds HTML/XML into PHP. See <a
-				href="downloads.html">spinoffs</a> for details.  In further news, we
-				have released version <b>0.1.7</b> as no major programs were
-				reported in 0.1.7rc2, and we have added a new article on <a
-				href="articles/reentrantparser.html">writing a reentrant parser
-				with Bison and Flex</a>.</p>
-
-				<p> <i><a name="2006july21">21 July 2006</a></i>. Fixed a few (minor)
-				user-reported bugs in <b>0.1.7rc2</b>.</p>
-
-				<p> <i><a name="2006july13">13 July 2006</a></i>. Released version
-				<b>0.1.7rc1</b>. We now support extending <span class="phc">phc</span>
-				through <b>plugins</b>: it is no longer necessary to re-compile <span
-				class="phc">phc</span> to add functionality to it! This also should
-				make binary packages for <span class="phc">phc</span> much more
-				useful. See the <a href="src/ChangeLog">ChangeLog</a> for more
-				details.</p>
-
-				<p> <i><a name="2006july07">7 July 2006</a></i>. Bugfix
-				(<b>0.1.6rc2</b>). Scripts with open ended PHP (no closing tag) had an
-				extraneous echo at the end; also, use of identifiers as array indices
-				inside strings caused the identifier to be duplicated in the string to
-				follow the variable access. </p>
-
-				<p> <i><a name="2006july04">4 July 2006</a></i>. After a long period
-				of no releases, we are happy to announce version <b>0.1.6rc1</b>. New
-				in this release are an improved tree transformation API, support for
-				pattern matching on AST nodes, an XML unparser, and various other
-				features and bugfixes. As always, see <a
-				href="src/ChangeLog">ChangeLog</a> for details.</p> 
-
-				<p> <i><a name="2006jan27">27 January 2006</a></i>. Version 0.1.5 did
-				not compile on systems with old versions of Flex. Our apologies. This
-				is solved in <b>0.1.5.1</b>.</p>
-
-				<p> <i><a name="2006jan26">26 January 2006</a></i>. Version
-				<b>0.1.5</b> released. <span class="phc">phc</span> is now released
-				under the <b>BSD license</b>. This release also contains numerous
-				minor feature enhancements and bug fixes; see <a
-				href="src/ChangeLog">ChangeLog</a> for details.</p>
-
-				<p> <i><a name="2006jan09">9 January 2006</a></i>. Lots of minor
-				feature enhancements. See <a href="src/ChangeLog">ChangeLog</a> for
-				details. <b>IMPORTANT</b>: this release is not downwards compatible
-				with the previous!</p>
-
-				<p> <i><a name="2005dec01">1 December 2005</a></i>. Bug fix. Null
-				vectors are now unparsed properly by the dot unparser, and
-				Windows-style line-breaks are handled properly.</p>
-
-				<p> <i><a name="2005nov17">17 November 2005</a></i>. Added
-				functionality to the TreeTransform API to modify the traversal order.
-				See <a href="doc/manual/tutorial5.html">Tutorial 5</a> for details.
+				<p><i><a name="2008oct12">12 October 2008</a></i>.
+					As part of a push for greater contributions ot <span
+					class="phc">phc</span>, the <a
+					href="http://www.phpcompiler.org/mailinglist.html">php-internals
+					mailing list</a> has been opened up for general membership.
 				</p>
 
-				<p> <i><a name="2005nov02">2 November 2005</a></i>. Bug fix. Strings
-				containing variables were not parsed correctly; corrected in release
-				<b>0.1.1</b>.
+				<p><i><a name="2008sep21-2">21 September 2008</a></i>.
+					phpcompiler.org has been given an overhaul. Although most of the
+					changes are behind the scenes, we've added a contribution page,
+					to make it easier for potential contributors to contribute to
+					<span class=phc>phc</span>.
+				</p>
 
-				<p> <i><a name="2005sept29">29 September 2005</a></i>. First release
-				of <span class="phc">phc</span>! This release offers the framework for
-				modifying PHP (parser, unparser, tree transformation interface) but as
-				yet nothing else.</p>
+				<p><i><a name="2008sep21">21 September 2008</a></i>.
+					The first alpha release of <span class="phc">phc</span> version
+					0.2.0 has been made available.  The major change is this is the
+					first version which compiles PHP code into an executable, or
+					into a C extension.  This allows speed-ups of approximately 1.50
+					(programs takes 33% less time to run).
+				</p>
+
+				<p><i><a name="2007jan17">17 January 2007</a></i>.
+					The <span class="phc">phc</span> SVN repository is now publicly
+					available.  Read the <a
+					href="https://www.phpcompiler.org/lists/phc-general/2007-January/000201.html">announcement</a>
+					for more details.
+				</p>
+
+				<p><i><a name="2006sept09">8 September 2006</a></i>.
+					We are delighted to announce the first spin-off based on <span
+					class="phc">phc</span>.  Written by Daniel Barreiro, it embeds
+					HTML/XML into PHP. See <a href="downloads.html">spinoffs</a> for
+					details.  In further news, we have released version <b>0.1.7</b>
+					as no major programs were reported in 0.1.7rc2, and we have
+					added a new article on <a
+					href="articles/reentrantparser.html">writing a reentrant parser
+					with Bison and Flex</a>.
+				</p>
+
+				<p><i><a name="2006july21">21 July 2006</a></i>.
+					Fixed a few (minor) user-reported bugs in <b>0.1.7rc2</b>.
+				</p>
+
+				<p><i><a name="2006july13">13 July 2006</a></i>.
+					Released version <b>0.1.7rc1</b>. We now support extending <span
+					class="phc">phc</span> through <b>plugins</b>: it is no longer
+					necessary to re-compile <span class="phc">phc</span> to add
+					functionality to it! This also should make binary packages for
+					<span class="phc">phc</span> much more useful. See the <a
+					href="src/ChangeLog">ChangeLog</a> for more details.
+				</p>
+
+				<p><i><a name="2006july07">7 July 2006</a></i>.
+					Bugfix (<b>0.1.6rc2</b>). Scripts with open ended PHP (no
+					closing tag) had an extraneous echo at the end; also, use of
+					identifiers as array indices inside strings caused the
+					identifier to be duplicated in the string to follow the variable
+					access.
+				</p>
+
+				<p><i><a name="2006july04">4 July 2006</a></i>.
+					After a long period of no releases, we are happy to announce
+					version <b>0.1.6rc1</b>. New in this release are an improved
+					tree transformation API, support for pattern matching on AST
+					nodes, an XML unparser, and various other features and bugfixes.
+					As always, see <a href="src/ChangeLog">ChangeLog</a> for
+					details.
+				</p> 
+
+				<p><i><a name="2006jan27">27 January 2006</a></i>.
+					Version 0.1.5 did not compile on systems with old versions of
+					Flex. Our apologies. This is solved in <b>0.1.5.1</b>.
+				</p>
+
+				<p><i><a name="2006jan26">26 January 2006</a></i>.
+					Version <b>0.1.5</b> released. <span class="phc">phc</span> is
+					now released under the <b>BSD license</b>. This release also
+					contains numerous minor feature enhancements and bug fixes; see
+					<a href="src/ChangeLog">ChangeLog</a> for details.
+				</p>
+
+				<p><i><a name="2006jan09">9 January 2006</a></i>.
+					Lots of minor feature enhancements. See <a
+					href="src/ChangeLog">ChangeLog</a> for details.
+					<b>IMPORTANT</b>: this release is not downwards compatible with
+					the previous!
+				</p>
+
+				<p><i><a name="2005dec01">1 December 2005</a></i>.
+					Bug fix. Null vectors are now unparsed properly by the dot
+					unparser, and Windows-style line-breaks are handled properly.
+				</p>
+
+				<p><i><a name="2005nov17">17 November 2005</a></i>.
+					Added functionality to the TreeTransform API to modify the
+					traversal order.  See <a
+					href="doc/manual/tutorial5.html">Tutorial 5</a> for details.
+				</p>
+
+				<p><i><a name="2005nov02">2 November 2005</a></i>.
+					Bug fix. Strings containing variables were not parsed correctly;
+					corrected in release <b>0.1.1</b>.
+
+				<p><i><a name="2005sept29">29 September 2005</a></i>.
+					First release of <span class="phc">phc</span>! This release
+					offers the framework for modifying PHP (parser, unparser, tree
+					transformation interface) but as yet nothing else.
+				</p>
 
 			</td>
 		</tr>
