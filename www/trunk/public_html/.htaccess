@@ -2,7 +2,29 @@
 ForceType application/x-httpd-php 
 </Files>
 
-# Fix old URLs
+
+# Fix old URLs - see http://httpd.apache.org/docs/2.0/mod/mod_rewrite.html#RewriteRule
 RewriteEngine  on
 RewriteBase    /
-RewriteRule    ^contact\.html$  mailinglist.html  [R]
+
+# [R=301] means redirect with a 301 (permanently moved) code.
+# [L] means don't try to process after matching this rule.
+# [NE] stops # from being converted into hex.
+
+# Web pages
+RewriteRule    ^contact.html$  /mailinglist.html [R=301,L]
+RewriteRule    ^authors.html$  /contribute.html#contributors [R=301,L,NE]
+RewriteRule    ^src/index.html$  /downloads.html [R=301,L]
+RewriteRule    ^doc/index.html$  /documentation.html [R=301,L]
+RewriteRule    ^plugins/.*$  /downloads.html#spinoffs [R=301,L,NE]
+RewriteRule    ^spinoffs/.*$  /downloads.html#spinoffs [R=301,L,NE]
+
+# Articles
+RewriteRule    ^doc/virtualinheritance\.html$  /articles/virtualinheritance.html  [R=301,L]
+RewriteRule    ^doc/reentrantparser\.html$  /articles/reentrantparser.html  [R=301,L]
+
+# Manual - Make a token effort to get old pages should point to latest.
+RewriteRule    ^doc/([^\/]*).html$  /doc/manual/$1.html  [R=301]
+RewriteRule    ^doc/manual/tutorial(\d).html$  /doc/latest/treetutorial$1.html  [R=301,L]
+RewriteRule    ^doc/manual/(.*).html$  /doc/latest/$1.html  [R=301,L]
+
