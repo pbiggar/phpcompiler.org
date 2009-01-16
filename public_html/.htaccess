@@ -30,13 +30,13 @@ RewriteRule    ^doc/manual/tutorial(\d).html$	/doc/latest/treetutorial$1.html  [
 RewriteRule    ^doc/manual/(.*).html$				/doc/latest/$1.html  [R=301,L]
 
 # Dont use symlinks (since we use this)
-RewriteRule		^doc/latest/(.*)$			/doc/phc-0.2.0.1/$1
+RewriteRule		^doc/latest/(.*)$						/doc/phc-0.2.0.1/$1 [R,L]
 
 # Downloads - I made the mistake of pointing to files in src/ instead of src/archive/
-RewriteRule		^src/(.*.tar.gz)$			/src/archive/$1
-RewriteRule		^src/(.*.tar.bz2)$		/src/archive/$1
-RewriteRule		^src/(.*.pdf)$				/src/archive/$1
+RewriteRule		^src/(phc-[^\/]*.tar.gz)$			/src/archive/$1 [R=301,L]
+RewriteRule		^src/(phc-[^\/]*.tar.bz2)$			/src/archive/$1 [R=301,L]
+RewriteRule		^src/(phc-[^\/]*.pdf)$				/src/archive/$1 [R=301,L]
 
 # Same with documentation
-RewriteRule		^doc/(.*.pdf)$				/src/archive/$1
-RewriteRule		^doc/(.*-html.tar.gz)$	/src/archive/$1
+RewriteRule		^doc/(phc-[^\/]*.pdf)$				/src/archive/$1 [R=301,L]
+RewriteRule		^doc/(phc-[^\/]*-html.tar.gz)$	/src/archive/$1 [R=301,L]
