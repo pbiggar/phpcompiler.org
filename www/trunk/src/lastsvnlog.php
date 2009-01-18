@@ -156,23 +156,17 @@
 	{
 		global $CONFIG;
 
-		exec("$CONFIG[svn] $CONFIG[svnExtraArgs] --xml -v log -r $revs $CONFIG[repo]", $log, $return);
-		if($return != 0)
+		list($retval, $log) = exec_command("$CONFIG[svn] $CONFIG[svnExtraArgs] --xml -v log -r $revs $CONFIG[repo]");
+		if($retval != 0)
 			die("Could not run <tt>svn</tt>");
 
 		$parser = new SvnLogParser();
-		foreach($log as $line)
-		{
-			$parser->parse($line, False);
-		}
-		$parser->parse("", True);
-
-		return $parser->getLog();
+		return $parser->parse($log);
 	}
 
 	class SvnLogParser
 	{
-		protected $log = NULL;
+		protected $log;
 		protected $parser;
 		protected $topElement;
 
@@ -185,20 +179,18 @@
 			xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
 		}
 
-		function parse($data, $final)
+		function parse($data)
 		{
-			if(!xml_parse($this->parser, $data, $final))
+			$this->log = NULL;
+
+			if(!xml_parse($this->parser, $data, True))
 				die(sprintf("XML error: %s at line %d",
 					xml_error_string(xml_get_error_code($this->parser)),
 					xml_get_current_line_number($this->parser)));
-		}
-		
-		function getLog()
-		{
-			$this->parse("", True);
+
 			return $this->log;
 		}
-
+		
 		function startElementHandler($parser, $name, $attrs)
 		{
 			$this->topElement = $name;
@@ -258,6 +250,36 @@
 					break;
 			}
 		}
+	}
+
+	/*
+	 * Execute a command
+	 *
+	 * PHP defines 
+	 *
+	 *   - shell_exec, which does not alter the output of the program, but does
+	 *     not return the return value of the program
+	 *   - exec, which returns the return value of the program but alters the
+	 *     program's output (in particular, strips whitespace)
+	 *   - system and passtrue, which do not return the output of the program
+	 *     as a string but pass it directly to stdout
+	 *
+	 * None of these is entirely satisfactory for our purposes. We want the 
+	 * output of the program unaltered, but we also need to know the return
+	 * value.
+	 *
+	 * Usage:
+	 *
+	 *   list($retval, $output) = exec_command([command]);
+	 */
+
+	function exec_command($cmd)
+	{
+		$proc = popen($cmd, "r");
+		$output = stream_get_contents($proc);
+		$retval = pclose($proc);
+
+		return array($retval, $output);
 	}
 
 	/*
