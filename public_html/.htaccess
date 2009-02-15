@@ -30,7 +30,7 @@ RewriteRule    ^doc/manual/tutorial(\d).html$	/doc/latest/treetutorial$1.html  [
 RewriteRule    ^doc/manual/(.*).html$				/doc/latest/$1.html  [R=301,L]
 
 # Dont use symlinks (since we use this)
-RewriteRule		^doc/latest/(.*)$						/doc/phc-0.2.0.2/$1 [R,L]
+RewriteRule		^doc/latest/(.*)$						/doc/phc-0.2.0.3/$1 [R,L]
 
 # Downloads - I made the mistake of pointing to files in src/ instead of src/archive/
 RewriteRule		^src/(phc-[^\/]*.tar.gz)$			/src/archive/$1 [R=301,L]
