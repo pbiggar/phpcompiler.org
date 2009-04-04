@@ -60,7 +60,7 @@
 				document. The latest version (0.2.0.3) is available to download (<a
 				href="src/archive/phc-0.2.0.3.pdf">PDF</a> or <a
 				href="src/archive/phc-0.2.0.3-html.tar.gz">HTML</a>) or <a
-				href="doc/latest/manual.html">online</a>).  We don't
+				href="doc/latest/manual.html">online</a>.  We don't
 				recommend any other version, though previous versions are <a
 				href="src/archive/">archived</a>.</p>
 
@@ -71,18 +71,19 @@
 						<li>
 							<cite>
 							<a href="https://www.cs.tcd.ie/publications/tech-reports/reports.07/TCD-CS-2007-47.pdf">
-							Design and Implementation of a PHP Compiler Front-end.</a>
+							Design and Implementation of a PHP Compiler Front-end</a>.
 							Edsko de Vries and John Gilbert</cite>.
-							<ul><li>describes the <span class=phc>phc</span>
-							front-end.</li></ul>
+							<ul><li>A technical report describing the <span class=phc>phc</span>
+							front-end, including its strategy for lexing, parsing and
+							unparsing, and the design of its AST.</li></ul>
 						</li>
 
 						<li>
 							<cite>
-								<a href="doc/maketea.pdf">Processing ASTs in C++: maketea.</a>
+								<a href="doc/maketea.pdf">Processing ASTs in C++: maketea</a>.
 								Edsko de Vries, John Gilbert and David M Abrahamson</cite>.
 							<ul><li>
-								describes <i>maketea</i> and the AST visitors and
+								A short paper, describing <i>maketea</i> and the AST visitors and
 								transformers.
 							</li></ul>
 						</li>
@@ -96,10 +97,31 @@
 							<a href="https://www.cs.tcd.ie/~pbiggar/sac-2009.bib">bibtex</a>)
 
 							<ul><li>
-								describes the integration of the <i>PHP embed SAPI</i> with
-								<span class="phc">phc</span>.
+								A paper describing the integration of the <i>PHP embed SAPI</i> with
+								<span class="phc">phc</span>, in particular for
+								supporting PHP's semantics, and for code generation.
 							</li></ul>
 						</li>
+
+						<li>
+							<cite>
+								<a href="https://www.cs.tcd.ie/~pbiggar/#phc-talks">
+								Compiling and Optimizing Scripting Languages</a>.
+								Paul Biggar and David Gregg</cite>.
+							(<a href="https://www.cs.tcd.ie/~pbiggar/#phc-talks">abstract</a>,
+							<a href="http://www.youtube.com/watch?v=kKySEUrP7LA">video</a>,
+							<a href="https://www.cs.tcd.ie/~pbiggar/paul_biggar_google_18_mar_2009.pdf">slides</a>,
+							<a href="https://www.cs.tcd.ie/~pbiggar/paul_biggar_google_18_mar_2009_notes.pdf">slides with notes</a>)
+
+							<ul><li>
+								A talk giving an overview of <span
+								class="phc">phc</span>, its code-generation and
+								integration with the PHP embed SAPI, and the
+								optimization framework being developed on the
+								<i>dataflow</i> branch.
+							</li></ul>
+						</li>
+	
 					</ul>
 				</p>
 
