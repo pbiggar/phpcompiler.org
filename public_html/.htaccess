@@ -27,8 +27,8 @@ RewriteRule    ^doc/reentrantparser\.html$		/articles/reentrantparser.html  [R=3
 
 
 # Manual - Make a token effort to get old pages should point to latest.
-RewriteRule		^doc/latest/usermanual.html$						/doc/latest/manual.html [R,L]
-RewriteRule		^doc/latest/devmanual.html$						/doc/latest/manual.html [R,L]
+RewriteRule		^doc/latest/usermanual.html$						/doc/latest/manual.html#users-manual [R,L,NE]
+RewriteRule		^doc/latest/devmanual.html$						/doc/latest/manual.html#developers-manual [R,L,NE]
 
 RewriteRule    ^doc/([^\/]*).html$					/doc/manual/$1.html  [R=301]
 RewriteRule    ^doc/manual/tutorial(\d).html$	/doc/latest/treetutorial$1.html  [R=301,L]

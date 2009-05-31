@@ -485,7 +485,7 @@ left = __dynamic_cast(top1, typeinfo_for_Top, typeinfo_for_Left, -1);
 			indicates that the relationship between <code>Left</code> and
 			<code>Top</code> is presently unknown). For details, refer to the
 			implementation in <a
-			href="http://www.codesourcery.com/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
+			href="http://www.codesourcery.com/public/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
 			</p>
 
 			<h2>Concluding Remarks</h2>
@@ -692,20 +692,21 @@ Right* r = b;
 			<h2>References</h2>
 
 			<p>[1] <a href="http://www.codesourcery.com">CodeSourcery</a>, in
-			particular the <a href="http://www.codesourcery.com/cxx-abi">C++ ABI
+			particular the <a href="http://www.codesourcery.com/public/cxx-abi/">C++ ABI
 			Summary</a>, the <a
-			href="http://www.codesourcery.com/cxx-abi/abi.html">Itanium C++
+			href="http://www.codesourcery.com/public/cxx-abi/abi.html">Itanium C++
 			ABI</a> (despite the name, this document is referenced in a
 			platform-independent context; in particular, the <a
-			href="http://www.codesourcery.com/cxx-abi/abi.html#vtable">structure
+			href="http://www.codesourcery.com/public/cxx-abi/abi.html#vtable">structure
 			of the vtables</a> is detailed here). The <tt>libstdc++</tt>
 			implementation of dynamic casts, as well RTTI and name
 			unmangling/demangling, is defined in <a
-			href="http://www.codesourcery.com/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
+			href="http://www.codesourcery.com/public/cxx-abi/gcc-tinfo.cc">tinfo.cc</a>.
 
-			<p>[2] The <a href="http://gcc.gnu.org/libstdc++/">libstdc++</a> website, in particular the section on the <a href="http://gcc.gnu.org/onlinedocs/libstdc++/abi.html">C++ Standard Library API</a>.</p> 
+			<p>[2] The <a href="http://gcc.gnu.org/libstdc++/">libstdc++</a> website, in particular the section on the <a href="http://gcc.gnu.org/onlinedocs/libstdc++/api.html">C++ Standard Library API</a>.</p> 
 
-			<p>[3] <a href="http://msdn.microsoft.com/archive/default.asp?url=/archive/en-us/dnarvc/html/jangrayhood.asp">C++: Under the Hood</a> by Jan Gray.</p>
+			<p>[3] <a href="http://www.openrce.org/articles/files/jangrayhood.pdf">C++: Under the Hood</a> by Jan Gray.</p>
+			<!-- "http://msdn.microsoft.com/archive/default.asp?url=/archive/en-us/dnarvc/html/jangrayhood.asp" isnt valid, use archived version. -->
 
 			<p>[4] Chapter 9, &ldquo;Multiple Inheritance&rdquo; of <i>Thinking in C++ (volume 2)</i> by <a href="http://www.bruceeckel.com">Bruce Eckel</a>. The author has made this book available for <a href="http://mindview.net/Books/DownloadSites">download</a>. 
 
